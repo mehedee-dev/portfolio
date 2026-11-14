@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: 'Manrope', system-ui, sans-serif; background: #0A1527; }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(34,211,238,0.3); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes pulse { 0%,100% { opacity: .6; } 50% { opacity: 1; } }
+  @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" style="background: var(--bg,#0A1527); color: var(--text,#EAF2FF); font-family: 'Manrope', sans-serif; min-height: 100vh; overflow-x: hidden; transition: background .4s ease, color .4s ease;">
+
+  <!-- NAV -->
+  <nav style="position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: var(--nav,rgba(9,18,35,0.72)); border-bottom: 1px solid var(--border,rgba(255,255,255,0.08));">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 12px clamp(16px,4vw,40px); display: flex; align-items: center; gap: 12px;">
+      <a href="#top" style="display: flex; align-items: center; gap: 12px; font-family: 'Sora',sans-serif; font-weight: 700;">
+        <span style="width: 40px; height: 40px; border-radius: 11px; background: linear-gradient(135deg,#22D3EE,#3B82F6); display: grid; place-items: center; color: #04101f; font-weight: 800; font-size: 17px; box-shadow: 0 6px 20px rgba(34,211,238,0.35);">MH</span>
+        <span style="display: flex; flex-direction: column; line-height: 1;">
+          <span style="font-size: 15px; letter-spacing: .2px; white-space: nowrap;">Mehedee Hassan</span>
+          <span style="font-size: 11px; font-weight: 500; color: var(--dim,#8CA3C7); font-family: 'JetBrains Mono',monospace; margin-top: 4px; letter-spacing: .5px;">Sr. SysAdmin</span>
+        </span>
+      </a>
+      <div style="flex: 1;"></div>
+      <div ref="{{ progressRef }}" style="position: absolute; left: 0; bottom: -1px; height: 2px; width: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg,#22D3EE,#3B82F6); box-shadow: 0 0 10px rgba(34,211,238,0.6); pointer-events: none;"></div>
+      <div style="display: flex; align-items: center; gap: clamp(6px,1.6vw,24px); justify-content: flex-end; min-width: 0;">
+        <sc-if value="{{ notMobile }}" hint-placeholder-val="{{ true }}"><div style="display: flex; align-items: center; gap: clamp(6px,1.6vw,24px);"><sc-for list="{{ navLinks }}" as="link" hint-placeholder-count="6">
+          <a href="{{ link.href }}" style="font-size: 13.5px; font-weight: 600; color: var(--dim,#8CA3C7); padding: 6px 2px; transition: color .2s; white-space: nowrap;" style-hover="{{ navHover }}">{{ link.label }}</a>
+        </sc-for></div></sc-if>
+        <button onClick="{{ toggleTheme }}" aria-label="Toggle theme" style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border,rgba(255,255,255,0.12)); background: var(--surface2,rgba(255,255,255,0.04)); color: var(--text,#EAF2FF); cursor: pointer; display: grid; place-items: center; transition: all .2s;">
+          <span style="font-size: 16px;">{{ themeIcon }}</span>
+        </button>
+        <sc-if value="{{ notMobile }}" hint-placeholder-val="{{ true }}"><a href="{{ cvHref }}" download style="font-size: 13.5px; font-weight: 700; color: #04101f; background: linear-gradient(135deg,#22D3EE,#3B82F6); padding: 10px 16px; white-space: nowrap; border-radius: 10px; box-shadow: 0 6px 20px rgba(34,211,238,0.3); transition: transform .2s;" style-hover="{{ liftHover }}">Download CV</a></sc-if>
+        <sc-if value="{{ isMobile }}" hint-placeholder-val=""><button onClick="{{ toggleMenu }}" aria-label="Menu" style="width: 44px; height: 44px; border-radius: 11px; border: 1px solid var(--border,rgba(255,255,255,0.12)); background: var(--surface2,rgba(255,255,255,0.04)); color: var(--text,#EAF2FF); cursor: pointer; display: grid; place-items: center;"><span dangerouslySetInnerHTML="{{ menuIcon }}" style="display: grid;"></span></button></sc-if>
+      </div>
+    </div>
+    <sc-if value="{{ showMenu }}" hint-placeholder-val="">
+      <div style="border-top: 1px solid var(--border,rgba(255,255,255,0.08)); padding: 10px 18px 20px; display: grid; gap: 4px; background: var(--nav,rgba(9,18,35,0.96));">
+        <sc-for list="{{ navLinks }}" as="link" hint-placeholder-count="6">
+          <a href="{{ link.href }}" onClick="{{ closeMenu }}" style="display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 6px; font-size: 16px; font-weight: 600; color: var(--text,#EAF2FF); border-bottom: 1px solid var(--border,rgba(255,255,255,0.06));">{{ link.label }}<span style="color: var(--accent,#22D3EE); font-family: 'JetBrains Mono',monospace; font-size: 13px;">→</span></a>
+        </sc-for>
+        <a href="{{ cvHref }}" download style="margin-top: 12px; display: flex; align-items: center; justify-content: center; min-height: 50px; font-size: 15px; font-weight: 700; color: #04101f; background: linear-gradient(135deg,#22D3EE,#3B82F6); border-radius: 12px;">Download CV</a>
+      </div>
+    </sc-if>
+  </nav>
+
+  <!-- HERO -->
+  <header id="top" style="position: relative; overflow: hidden;">
+    <div style="position: absolute; inset: 0; background: radial-gradient(900px 600px at 78% 40%, var(--glow,rgba(59,130,246,0.20)), transparent 62%), radial-gradient(700px 500px at 0% 0%, rgba(34,211,238,0.08), transparent 60%); pointer-events: none;"></div>
+    <div style="position: absolute; inset: 0; background-image: linear-gradient(var(--border,rgba(255,255,255,0.035)) 1px, transparent 1px), linear-gradient(90deg, var(--border,rgba(255,255,255,0.035)) 1px, transparent 1px); background-size: 64px 64px; mask-image: radial-gradient(ellipse at 30% 40%, #000 10%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000 10%, transparent 70%); pointer-events: none;"></div>
+    <div style="position: relative; max-width: 1240px; margin: 0 auto; padding: clamp(48px,7vw,96px) clamp(18px,4vw,40px) clamp(40px,5vw,64px); display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,360px),1fr)); gap: clamp(24px,4vw,56px); align-items: center;">
+      <div style="min-width: 0; position: relative; z-index: 2;">
+        <div style="display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px 7px 10px; border-radius: 999px; border: 1px solid rgba(34,211,238,0.3); background: rgba(34,211,238,0.07); font-size: 12.5px; font-weight: 600; color: var(--accent,#5EE4F7); letter-spacing: .3px; animation: fadeUp .6s both;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; box-shadow: 0 0 10px #34D399; animation: pulse 2s infinite;"></span>
+          Open to enterprise IT roles · Dhaka, Bangladesh
+        </div>
+        <h1 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(32px,5.2vw,64px); line-height: 1.06; letter-spacing: -1.5px; margin: 24px 0 0; animation: fadeUp .7s .05s both; text-wrap: balance;">Hello, I'm <span style="background: linear-gradient(120deg,#22D3EE,#3B82F6 60%,#818CF8); -webkit-background-clip: text; background-clip: text; color: transparent;">Md. Mehedee Hassan</span></h1>
+        <div style="display: flex; align-items: center; gap: 12px; margin-top: 22px; animation: fadeUp .7s .1s both;">
+          <span style="width: 28px; height: 2px; background: linear-gradient(90deg,#22D3EE,#3B82F6); flex-shrink: 0;"></span>
+          <p style="font-family: 'Sora',sans-serif; font-weight: 600; font-size: clamp(15px,1.7vw,19px); color: var(--text,#EAF2FF); margin: 0; letter-spacing: -.2px;">Senior System Administrator &amp; IT Infrastructure Specialist</p>
+        </div>
+        <p style="font-size: clamp(15px,1.4vw,17px); line-height: 1.7; color: var(--dim,#8CA3C7); max-width: 540px; margin: 18px 0 0; animation: fadeUp .7s .15s both; text-wrap: pretty;">Experienced in managing, securing, and optimizing enterprise IT infrastructure — 8+ years across Windows &amp; Linux servers, networking, cloud, and virtualization.</p>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 32px; animation: fadeUp .7s .2s both;">
+          <a href="{{ cvHref }}" download style="display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; color: #04101f; background: linear-gradient(135deg,#22D3EE,#3B82F6); padding: 15px 26px; border-radius: 12px; box-shadow: 0 12px 32px rgba(34,211,238,0.33); transition: transform .2s;" style-hover="{{ liftHover }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download My CV
+          </a>
+          <a href="#contact" style="display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; color: var(--text,#EAF2FF); background: var(--surface2,rgba(255,255,255,0.04)); border: 1px solid var(--border,rgba(255,255,255,0.14)); padding: 15px 26px; border-radius: 12px; transition: all .2s;" style-hover="{{ outlineHover }}">Let's Connect <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); margin-top: 44px; max-width: 520px; border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 16px; background: var(--surface,rgba(15,30,56,0.6)); backdrop-filter: blur(8px); animation: fadeUp .7s .25s both;">
+          <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="3">
+            <div style="padding: 14px clamp(10px,2.5vw,18px); border-left: 1px solid var(--border,rgba(255,255,255,0.08)); margin-left: -1px; min-width: 0;">
+              <div style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(20px,2.4vw,26px); letter-spacing: -.5px; color: var(--text,#EAF2FF);">{{ s.value }}</div>
+              <div style="font-family: 'JetBrains Mono',monospace; font-size: 11px; letter-spacing: .5px; text-transform: uppercase; color: var(--dim,#8CA3C7); margin-top: 4px;">{{ s.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="position: relative; min-width: 0; display: grid; place-items: center;">
+        <div style="position: relative; width: min(520px,100%); aspect-ratio: 1/1; max-width: 100%;">
+          <div style="position: absolute; inset: 6%; border-radius: 50%; border: 1px dashed rgba(34,211,238,0.22);"></div>
+          <div style="position: absolute; inset: 15%; border-radius: 50%; background: radial-gradient(circle, rgba(34,211,238,0.16), transparent 70%);"></div>
+          <div style="position: absolute; left: 50%; top: 50%; width: 68%; aspect-ratio: 1/1; transform: translate(-50%,-50%); border-radius: 50%; padding: 5px; background: linear-gradient(140deg,#22D3EE,#3B82F6 55%,rgba(129,140,248,0.4)); box-shadow: 0 0 0 10px rgba(10,21,39,0.55), 0 0 60px rgba(34,211,238,0.35), 0 30px 70px rgba(2,8,20,0.6);">
+            <div style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: var(--surface,#0F1E38);">
+              <image-slot id="mehedee-photo" shape="circle" placeholder="Drop your profile photo"></image-slot>
+            </div>
+          </div>
+          <div style="position: absolute; left: 2%; top: 14%; display: flex; align-items: center; gap: 11px; background: var(--nav,rgba(9,18,35,0.82)); backdrop-filter: blur(12px); border: 1px solid var(--border,rgba(255,255,255,0.12)); border-radius: 14px; padding: 11px 15px 11px 11px; box-shadow: 0 14px 34px rgba(2,8,20,0.45); animation: floaty 5s ease-in-out infinite;">
+            <span style="width: 34px; height: 34px; border-radius: 9px; background: rgba(52,211,153,0.14); color: #34D399; display: grid; place-items: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+            <span><span style="display: block; font-size: 11px; color: var(--dim,#8CA3C7); font-weight: 600;">Server uptime</span><span style="display: block; font-family: 'Sora',sans-serif; font-weight: 800; font-size: 17px;">99.5%+</span></span>
+          </div>
+          <div style="position: absolute; right: 0; bottom: 16%; display: flex; align-items: center; gap: 11px; background: var(--nav,rgba(9,18,35,0.82)); backdrop-filter: blur(12px); border: 1px solid var(--border,rgba(255,255,255,0.12)); border-radius: 14px; padding: 11px 15px 11px 11px; box-shadow: 0 14px 34px rgba(2,8,20,0.45); animation: floaty 6s ease-in-out infinite .8s;">
+            <span style="width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg,#22D3EE,#3B82F6); color: #04101f; display: grid; place-items: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></span>
+            <span><span style="display: block; font-size: 11px; color: var(--dim,#8CA3C7); font-weight: 600;">Microsoft Certified</span><span style="display: block; font-family: 'Sora',sans-serif; font-weight: 800; font-size: 17px;">Azure AZ-104</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="position: relative; border-top: 1px solid var(--border,rgba(255,255,255,0.07)); background: var(--surface2,rgba(11,25,48,0.6));">
+      <div style="max-width: 1240px; margin: 0 auto; padding: 18px clamp(18px,4vw,40px); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 28px; font-family: 'JetBrains Mono',monospace; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim,#8CA3C7);">
+        <span>Windows Server</span><span>Active Directory</span><span>MikroTik</span><span>Cisco</span><span>Microsoft Azure</span><span>Fortinet</span><span>VMware</span>
+      </div>
+    </div>
+  </header>
+
+  <section id="about" style="scroll-margin-top: 80px; max-width: 1200px; margin: 0 auto; padding: clamp(72px,9vw,130px) clamp(18px,4vw,40px);">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,320px),1fr)); gap: 20px 64px; align-items: end; margin-bottom: clamp(40px,5vw,64px);">
+      <div style="min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-family: 'JetBrains Mono',monospace; font-size: 12.5px; font-weight: 500; letter-spacing: 1.5px; color: var(--accent,#22D3EE); text-transform: uppercase;"><span>01</span><span style="width: 36px; height: 1px; background: currentColor; opacity: .6;"></span><span>About Me</span></div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(28px,3.8vw,46px); letter-spacing: -1.4px; line-height: 1.08; margin: 18px 0 0; text-wrap: balance;">Building resilient infrastructure that enterprises depend on</h2>
+      </div>
+      <p style="font-size: 16px; line-height: 1.7; color: var(--dim,#8CA3C7); margin: 0; max-width: 520px; text-wrap: pretty;">Reliability is the job. I design, implement, and maintain IT environments that stay secure and available — and I document them so teams can run them.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,420px),1fr)); gap: clamp(28px,4vw,48px); align-items: start;">
+      <div style="min-width: 0;">
+        <p style="font-family: 'Sora',sans-serif; font-size: clamp(19px,2vw,23px); line-height: 1.55; font-weight: 500; margin: 0; letter-spacing: -.3px; text-wrap: pretty;">8+ years managing enterprise IT end to end — from <span style="color: var(--accent,#22D3EE);">domain controllers and Active Directory</span> to firewalls, cloud workloads, and ServiceDesk operations.</p>
+        <p style="font-size: 16px; line-height: 1.75; color: var(--dim,#8CA3C7); margin: 22px 0 0;">Across Creative IT Institute and Apex DMIT Ltd, I've kept core servers — PDC, AD, DB, FS, IPTSP, FTP and ERP — running at 99.5%+ uptime, while delivering network, security, and cloud initiatives including upgrades, migrations, and new deployments.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 1px; margin-top: 32px; background: var(--border,rgba(255,255,255,0.08)); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 14px; overflow: hidden;">
+          <sc-for list="{{ facts }}" as="f" hint-placeholder-count="3">
+            <div style="background: var(--bg,#0A1527); padding: 16px 18px;">
+              <div style="font-family: 'JetBrains Mono',monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim,#8CA3C7);">{{ f.k }}</div>
+              <div style="font-weight: 700; font-size: 15px; margin-top: 6px;">{{ f.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="min-width: 0; border: 1px solid transparent; border-radius: 20px; background: linear-gradient(var(--surface,#0F1E38),var(--surface,#0F1E38)) padding-box, linear-gradient(140deg,rgba(34,211,238,0.45),rgba(59,130,246,0.12) 38%,rgba(255,255,255,0.05) 70%) border-box; overflow: hidden; box-shadow: 0 30px 80px rgba(2,8,20,0.45);">
+        <div style="display: flex; align-items: center; gap: 7px; padding: 12px 16px; border-bottom: 1px solid var(--border,rgba(255,255,255,0.07)); background: var(--surface2,rgba(255,255,255,0.02));"><span style="width: 9px; height: 9px; border-radius: 50%; background: #F87171; opacity: .8;"></span><span style="width: 9px; height: 9px; border-radius: 50%; background: #FBBF24; opacity: .8;"></span><span style="width: 9px; height: 9px; border-radius: 50%; background: #34D399; opacity: .8;"></span><span style="margin-left: 10px; font-family: 'JetBrains Mono',monospace; font-size: 11.5px; color: var(--dim,#8CA3C7);">infra-status — core services</span></div>
+        <div style="padding: 20px clamp(16px,2.5vw,24px);">
+          <div style="display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap;">
+            <div>
+              <div style="font-size: 12px; color: var(--dim,#8CA3C7); font-weight: 600;">Uptime maintained</div>
+              <div style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: 34px; letter-spacing: -1px; background: linear-gradient(120deg,#22D3EE,#3B82F6); -webkit-background-clip: text; background-clip: text; color: transparent;">99.5%+</div>
+            </div>
+            <span style="display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: #34D399; background: rgba(52,211,153,0.1); padding: 6px 11px; border-radius: 999px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #34D399; box-shadow: 0 0 8px #34D399; animation: pulse 2s infinite;"></span>All systems operational</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(118px,1fr)); gap: 8px; margin-top: 20px;">
+            <sc-for list="{{ servers }}" as="sv" hint-placeholder-count="7">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--surface2,rgba(255,255,255,0.03)); border: 1px solid var(--border,rgba(255,255,255,0.07));">
+                <span style="font-family: 'JetBrains Mono',monospace; font-size: 12.5px; font-weight: 500;">{{ sv }}</span>
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #34D399; box-shadow: 0 0 6px #34D399;"></span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 10px; margin-top: 18px;">
+            <sc-for list="{{ aboutCards }}" as="c" hint-placeholder-count="4">
+              <div style="display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 12px; border: 1px solid var(--border,rgba(255,255,255,0.07)); transition: border-color .25s, background .25s;" style-hover="{{ tileHover }}">
+                <span style="width: 36px; height: 36px; border-radius: 9px; background: linear-gradient(135deg,rgba(34,211,238,0.18),rgba(59,130,246,0.12)); display: grid; place-items: center; color: #22D3EE; flex-shrink: 0;"><span dangerouslySetInnerHTML="{{ c.icon }}" style="display: grid;"></span></span>
+                <span style="min-width: 0;">
+                  <span style="display: block; font-family: 'Sora',sans-serif; font-weight: 700; font-size: 13.5px;">{{ c.title }}</span>
+                  <span style="display: block; font-size: 12px; color: var(--dim,#8CA3C7); line-height: 1.45; margin-top: 3px;">{{ c.desc }}</span>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="experience" style="scroll-margin-top: 80px; position: relative; background: var(--surface2,#0B1930); border-top: 1px solid var(--border,rgba(255,255,255,0.06)); border-bottom: 1px solid var(--border,rgba(255,255,255,0.06)); overflow: hidden;">
+    <div style="position: absolute; inset: 0; background-image: linear-gradient(var(--border,rgba(255,255,255,0.035)) 1px, transparent 1px), linear-gradient(90deg, var(--border,rgba(255,255,255,0.035)) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%); pointer-events: none;"></div>
+    <div style="position: relative; max-width: 1200px; margin: 0 auto; padding: clamp(72px,9vw,130px) clamp(18px,4vw,40px);">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,320px),1fr)); gap: 20px 64px; align-items: end; margin-bottom: clamp(40px,5vw,64px);">
+      <div style="min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-family: 'JetBrains Mono',monospace; font-size: 12.5px; font-weight: 500; letter-spacing: 1.5px; color: var(--accent,#22D3EE); text-transform: uppercase;"><span>02</span><span style="width: 36px; height: 1px; background: currentColor; opacity: .6;"></span><span>Experience</span></div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(28px,3.8vw,46px); letter-spacing: -1.4px; line-height: 1.08; margin: 18px 0 0; text-wrap: balance;">A track record of scaling IT operations</h2>
+      </div>
+      <p style="font-size: 16px; line-height: 1.7; color: var(--dim,#8CA3C7); margin: 0; max-width: 520px; text-wrap: pretty;">Eight years of progression — from system administrator to senior infrastructure lead and network specialist.</p>
+    </div>
+      <div style="display: flex; flex-wrap: wrap; gap: clamp(28px,4vw,56px); align-items: flex-start;">
+        <div style="position: {{ journeyPos }}; top: 96px; min-width: 0; flex: 1 1 260px;">
+          <div style="font-family: 'JetBrains Mono',monospace; font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--dim,#8CA3C7); margin-bottom: 18px;">Professional Journey</div>
+          <div style="position: relative; display: grid;">
+            <div style="position: absolute; left: 11px; top: 12px; bottom: 34px; width: 2px; background: linear-gradient(180deg,rgba(34,211,238,0.2),#22D3EE);"></div>
+            <sc-for list="{{ journey }}" as="j" hint-placeholder-count="3">
+              <div style="position: relative; display: flex; gap: 18px; padding: 10px 0 22px;">
+                <span style="position: relative; width: 24px; height: 24px; border-radius: 50%; background: var(--bg,#0A1527); border: 2px solid #22D3EE; flex-shrink: 0; display: grid; place-items: center;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #22D3EE;"></span></span>
+                <span style="min-width: 0;">
+                  <span style="display: block; font-family: 'JetBrains Mono',monospace; font-size: 12px; color: var(--accent,#22D3EE); font-weight: 500;">{{ j.stage }}</span>
+                  <span style="display: block; font-family: 'Sora',sans-serif; font-weight: 700; font-size: 15.5px; margin-top: 4px;">{{ j.role }}</span>
+                  <span style="display: block; font-size: 13px; color: var(--dim,#8CA3C7); margin-top: 2px;">{{ j.year }}</span>
+                </span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: grid; gap: 18px; min-width: 0; flex: 999 1 min(100%,480px);">
+          <sc-for list="{{ experience }}" as="e" hint-placeholder-count="3">
+            <article style="border: 1px solid transparent; border-radius: 20px; background: linear-gradient(var(--surface,#0F1E38),var(--surface,#0F1E38)) padding-box, linear-gradient(140deg,rgba(34,211,238,0.45),rgba(59,130,246,0.12) 38%,rgba(255,255,255,0.05) 70%) border-box; padding: clamp(20px,3vw,32px); transition: transform .3s, box-shadow .3s; min-width: 0;" style-hover="{{ cardHoverGlow }}">
+              <div style="display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap;">
+                <span style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg,#0E2A4A,#123A66); border: 1px solid rgba(34,211,238,0.3); display: grid; place-items: center; font-family: 'Sora',sans-serif; font-weight: 800; font-size: 16px; color: #5EE4F7; flex-shrink: 0; letter-spacing: .5px;">{{ e.logo }}</span>
+                <div style="flex: 1; min-width: 200px;">
+                  <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <h3 style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: clamp(18px,2.2vw,22px); margin: 0; letter-spacing: -.4px;">{{ e.role }}</h3>
+                    <span style="font-family: 'JetBrains Mono',monospace; font-size: 12px; font-weight: 500; color: var(--text,#EAF2FF); background: var(--surface2,rgba(255,255,255,0.05)); border: 1px solid var(--border,rgba(255,255,255,0.1)); padding: 6px 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 8px;"><sc-if value="{{ e.current }}" hint-placeholder-val=""><span style="width: 7px; height: 7px; border-radius: 50%; background: #34D399; box-shadow: 0 0 8px #34D399; animation: pulse 2s infinite;"></span></sc-if>{{ e.period }}</span>
+                  </div>
+                  <div style="margin-top: 6px; font-size: 14.5px;"><span style="font-weight: 700; color: var(--accent,#22D3EE);">{{ e.company }}</span><span style="color: var(--dim,#8CA3C7);"> · {{ e.location }}</span></div>
+                </div>
+              </div>
+              <p style="font-size: 15px; line-height: 1.7; color: var(--dim,#8CA3C7); margin: 18px 0 0;">{{ e.summary }}</p>
+              <sc-if value="{{ e.hasHighlights }}" hint-placeholder-val="{{ true }}">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border,rgba(255,255,255,0.07));">
+                  <sc-for list="{{ e.highlights }}" as="h" hint-placeholder-count="4">
+                    <div style="display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; line-height: 1.5;">
+                      <span style="width: 20px; height: 20px; border-radius: 6px; background: rgba(34,211,238,0.14); color: #22D3EE; display: grid; place-items: center; flex-shrink: 0; margin-top: 1px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                      <span>{{ h }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </article>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills" style="scroll-margin-top: 80px; max-width: 1200px; margin: 0 auto; padding: clamp(72px,9vw,130px) clamp(18px,4vw,40px);">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,320px),1fr)); gap: 20px 64px; align-items: end; margin-bottom: clamp(40px,5vw,64px);">
+      <div style="min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-family: 'JetBrains Mono',monospace; font-size: 12.5px; font-weight: 500; letter-spacing: 1.5px; color: var(--accent,#22D3EE); text-transform: uppercase;"><span>03</span><span style="width: 36px; height: 1px; background: currentColor; opacity: .6;"></span><span>Technical Expertise</span></div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(28px,3.8vw,46px); letter-spacing: -1.4px; line-height: 1.08; margin: 18px 0 0; text-wrap: balance;">A full-stack infrastructure skill set</h2>
+      </div>
+      <p style="font-size: 16px; line-height: 1.7; color: var(--dim,#8CA3C7); margin: 0; max-width: 520px; text-wrap: pretty;">Five disciplines that cover the full lifecycle of enterprise IT — select a category to explore the technologies I work with.</p>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: stretch;">
+      <div style="display: grid; gap: 8px; align-content: start; min-width: 0; flex: 1 1 280px;">
+        <sc-for list="{{ skillTabs }}" as="t" hint-placeholder-count="5">
+          <button onClick="{{ t.select }}" style="{{ t.style }}">
+            <span style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg,rgba(34,211,238,0.18),rgba(59,130,246,0.12)); display: grid; place-items: center; color: #22D3EE; flex-shrink: 0;"><span dangerouslySetInnerHTML="{{ t.icon }}" style="display: grid;"></span></span>
+            <span style="flex: 1; min-width: 0; text-align: left;">
+              <span style="display: block; font-family: 'Sora',sans-serif; font-weight: 700; font-size: 15px; color: var(--text,#EAF2FF);">{{ t.title }}</span>
+              <span style="display: block; font-family: 'JetBrains Mono',monospace; font-size: 11.5px; color: var(--dim,#8CA3C7); margin-top: 3px;">{{ t.count }} technologies</span>
+            </span>
+            <span style="font-family: 'JetBrains Mono',monospace; font-size: 12px; color: var(--dim,#8CA3C7);">{{ t.num }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div style="border: 1px solid transparent; border-radius: 22px; background: linear-gradient(var(--surface,#0F1E38),var(--surface,#0F1E38)) padding-box, linear-gradient(140deg,rgba(34,211,238,0.45),rgba(59,130,246,0.12) 38%,rgba(255,255,255,0.05) 70%) border-box; overflow: hidden; min-width: 0; flex: 999 1 min(100%,460px); position: relative; box-shadow: 0 30px 80px rgba(2,8,20,0.4);">
+        <div style="position: absolute; right: -80px; top: -80px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(34,211,238,0.16), transparent 70%); pointer-events: none;"></div>
+        <div style="display: flex; align-items: center; gap: 7px; padding: 12px 16px; border-bottom: 1px solid var(--border,rgba(255,255,255,0.07)); background: var(--surface2,rgba(255,255,255,0.02));"><span style="width: 9px; height: 9px; border-radius: 50%; background: #F87171; opacity: .8;"></span><span style="width: 9px; height: 9px; border-radius: 50%; background: #FBBF24; opacity: .8;"></span><span style="width: 9px; height: 9px; border-radius: 50%; background: #34D399; opacity: .8;"></span><span style="margin-left: 10px; font-family: 'JetBrains Mono',monospace; font-size: 11.5px; color: var(--dim,#8CA3C7);">{{ activeGroup.path }}</span></div>
+        <div style="position: relative; padding: clamp(22px,3.5vw,36px);">
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <span style="width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg,#22D3EE,#3B82F6); display: grid; place-items: center; color: #04101f; flex-shrink: 0; box-shadow: 0 10px 30px rgba(34,211,238,0.35);"><span dangerouslySetInnerHTML="{{ activeGroup.icon }}" style="display: grid;"></span></span>
+            <div>
+              <div style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(20px,2.6vw,28px); letter-spacing: -.6px;">{{ activeGroup.title }}</div>
+              <div style="font-size: 14px; color: var(--dim,#8CA3C7); margin-top: 4px;">{{ activeGroup.blurb }}</div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill,minmax(190px,1fr)); gap: 10px; margin-top: 28px;">
+            <sc-for list="{{ activeGroup.items }}" as="item" hint-placeholder-count="7">
+              <div style="display: flex; align-items: center; gap: 11px; padding: 14px 16px; border-radius: 12px; background: var(--surface2,rgba(255,255,255,0.03)); border: 1px solid var(--border,rgba(255,255,255,0.08)); font-weight: 600; font-size: 14px; transition: border-color .2s, background .2s;" style-hover="{{ tileHover }}">
+                <span style="color: #22D3EE; display: grid;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>{{ item }}
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="certifications" style="scroll-margin-top: 80px; position: relative; background: var(--surface2,#0B1930); border-top: 1px solid var(--border,rgba(255,255,255,0.06)); border-bottom: 1px solid var(--border,rgba(255,255,255,0.06)); overflow: hidden;">
+    <div style="position: absolute; inset: 0; background-image: linear-gradient(var(--border,rgba(255,255,255,0.035)) 1px, transparent 1px), linear-gradient(90deg, var(--border,rgba(255,255,255,0.035)) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%); pointer-events: none;"></div>
+    <div style="position: relative; max-width: 1200px; margin: 0 auto; padding: clamp(72px,9vw,130px) clamp(18px,4vw,40px);">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,320px),1fr)); gap: 20px 64px; align-items: end; margin-bottom: clamp(40px,5vw,64px);">
+      <div style="min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-family: 'JetBrains Mono',monospace; font-size: 12.5px; font-weight: 500; letter-spacing: 1.5px; color: var(--accent,#22D3EE); text-transform: uppercase;"><span>04</span><span style="width: 36px; height: 1px; background: currentColor; opacity: .6;"></span><span>Certifications</span></div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(28px,3.8vw,46px); letter-spacing: -1.4px; line-height: 1.08; margin: 18px 0 0; text-wrap: balance;">Industry-recognized credentials</h2>
+      </div>
+      <p style="font-size: 16px; line-height: 1.7; color: var(--dim,#8CA3C7); margin: 0; max-width: 520px; text-wrap: pretty;">Certifications across cloud, networking, and systems administration — with credential IDs where issued.</p>
+    </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,260px),1fr)); gap: 16px;">
+        <div style="grid-column: 1 / -1; position: relative; overflow: hidden; border-radius: 22px; border: 1px solid rgba(34,211,238,0.35); background: linear-gradient(120deg, var(--surface,#0F1E38) 0%, var(--surface,#0F1E38) 45%, rgba(37,99,235,0.28) 100%); padding: clamp(24px,4vw,40px); display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); gap: 24px 40px; align-items: center;">
+          <div style="position: absolute; right: -60px; bottom: -120px; width: 380px; height: 380px; border-radius: 50%; border: 1px solid rgba(34,211,238,0.18); pointer-events: none;"></div>
+          <div style="position: absolute; right: 20px; bottom: -40px; width: 220px; height: 220px; border-radius: 50%; border: 1px solid rgba(34,211,238,0.14); pointer-events: none;"></div>
+          <div style="position: relative; display: flex; gap: 20px; align-items: center; min-width: 0;">
+            <span style="width: 72px; height: 72px; border-radius: 18px; background: linear-gradient(135deg,#22D3EE,#3B82F6); display: grid; place-items: center; color: #04101f; flex-shrink: 0; box-shadow: 0 14px 40px rgba(34,211,238,0.4);"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.5 9 4.5 4.5 0 0 0 6 18h11.5z"/></svg></span>
+            <div style="min-width: 0;">
+              <div style="font-family: 'JetBrains Mono',monospace; font-size: 11.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent,#5EE4F7);">Featured · Microsoft Certified</div>
+              <div style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(20px,2.6vw,28px); letter-spacing: -.6px; margin-top: 8px; line-height: 1.15;">Azure Administrator Associate</div>
+              <div style="font-size: 14px; color: var(--dim,#8CA3C7); margin-top: 6px;">Exam AZ-104 · Trained at CSL Training, 2023</div>
+            </div>
+          </div>
+          <div style="position: relative; display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 10px;">
+            <div style="padding: 14px 16px; border-radius: 12px; background: var(--surface2,rgba(4,16,31,0.35)); border: 1px solid var(--border,rgba(255,255,255,0.1));">
+              <div style="font-family: 'JetBrains Mono',monospace; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim,#8CA3C7);">Credential ID</div>
+              <div style="font-family: 'JetBrains Mono',monospace; font-size: 13.5px; font-weight: 500; margin-top: 6px; word-break: break-all;">D9B383E0172D10A9</div>
+            </div>
+            <div style="padding: 14px 16px; border-radius: 12px; background: var(--surface2,rgba(4,16,31,0.35)); border: 1px solid var(--border,rgba(255,255,255,0.1));">
+              <div style="font-family: 'JetBrains Mono',monospace; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim,#8CA3C7);">Certification No.</div>
+              <div style="font-family: 'JetBrains Mono',monospace; font-size: 13.5px; font-weight: 500; margin-top: 6px;">77DG5C-0DA40B</div>
+            </div>
+          </div>
+        </div>
+        <sc-for list="{{ certRest }}" as="c" hint-placeholder-count="7">
+          <div style="border: 1px solid transparent; border-radius: 18px; background: linear-gradient(var(--surface,#0F1E38),var(--surface,#0F1E38)) padding-box, linear-gradient(140deg,rgba(34,211,238,0.45),rgba(59,130,246,0.12) 38%,rgba(255,255,255,0.05) 70%) border-box; padding: 22px; position: relative; transition: transform .3s, box-shadow .3s; min-width: 0; display: flex; flex-direction: column;" style-hover="{{ cardHoverGlow }}">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+              <span style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: 13px; letter-spacing: .5px; color: #5EE4F7; background: linear-gradient(135deg,#0E2A4A,#123A66); border: 1px solid rgba(34,211,238,0.3); padding: 8px 11px; border-radius: 10px;">{{ c.code }}</span>
+              <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .5px; padding: 5px 10px; border-radius: 999px; text-transform: uppercase; color: {{ c.statusColor }}; background: {{ c.statusBg }};">{{ c.status }}</span>
+            </div>
+            <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 16px; margin-top: 18px; line-height: 1.3;">{{ c.name }}</div>
+            <div style="font-size: 13px; color: var(--dim,#8CA3C7); margin-top: 6px; flex: 1;">{{ c.issuer }}</div>
+            <sc-if value="{{ c.credId }}" hint-placeholder-val="X"><div style="font-family: 'JetBrains Mono',monospace; font-size: 12px; color: var(--accent,#22D3EE); margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border,rgba(255,255,255,0.12));">ID {{ c.credId }}</div></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" style="scroll-margin-top: 80px; max-width: 1200px; margin: 0 auto; padding: clamp(72px,9vw,130px) clamp(18px,4vw,40px);">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,320px),1fr)); gap: 20px 64px; align-items: end; margin-bottom: clamp(40px,5vw,64px);">
+      <div style="min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-family: 'JetBrains Mono',monospace; font-size: 12.5px; font-weight: 500; letter-spacing: 1.5px; color: var(--accent,#22D3EE); text-transform: uppercase;"><span>05</span><span style="width: 36px; height: 1px; background: currentColor; opacity: .6;"></span><span>IT Infrastructure &amp; Projects</span></div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(28px,3.8vw,46px); letter-spacing: -1.4px; line-height: 1.08; margin: 18px 0 0; text-wrap: balance;">Core infrastructure domains I deliver</h2>
+      </div>
+      <p style="font-size: 16px; line-height: 1.7; color: var(--dim,#8CA3C7); margin: 0; max-width: 520px; text-wrap: pretty;">Hands-on areas of responsibility across my career — presented as professional expertise areas, not standalone client projects.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,265px),1fr)); gap: 16px;">
+      <sc-for list="{{ projects }}" as="p" hint-placeholder-count="8">
+        <div style="border: 1px solid transparent; border-radius: 18px; background: linear-gradient(var(--surface,#0F1E38),var(--surface,#0F1E38)) padding-box, linear-gradient(140deg,rgba(34,211,238,0.45),rgba(59,130,246,0.12) 38%,rgba(255,255,255,0.05) 70%) border-box; overflow: hidden; transition: transform .3s, box-shadow .3s; min-width: 0; display: flex; flex-direction: column;" style-hover="{{ cardHoverGlow }}">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid var(--border,rgba(255,255,255,0.07)); background: var(--surface2,rgba(255,255,255,0.02));">
+            <span style="display: flex; gap: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--border,rgba(255,255,255,0.18));"></span><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--border,rgba(255,255,255,0.18));"></span><span style="width: 8px; height: 8px; border-radius: 50%; background: var(--border,rgba(255,255,255,0.18));"></span></span>
+            <span style="font-family: 'JetBrains Mono',monospace; font-size: 11px; color: var(--dim,#8CA3C7);">~/infra/{{ p.num }}</span>
+          </div>
+          <div style="padding: 24px; display: flex; flex-direction: column; flex: 1;">
+            <span style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg,rgba(34,211,238,0.2),rgba(59,130,246,0.14)); border: 1px solid rgba(34,211,238,0.25); display: grid; place-items: center; color: #22D3EE;"><span dangerouslySetInnerHTML="{{ p.icon }}" style="display: grid;"></span></span>
+            <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 17px; margin-top: 18px; line-height: 1.25; letter-spacing: -.3px;">{{ p.title }}</div>
+            <div style="font-size: 13.5px; color: var(--dim,#8CA3C7); line-height: 1.6; margin-top: 8px; flex: 1;">{{ p.desc }}</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px;">
+              <sc-for list="{{ p.tags }}" as="tg" hint-placeholder-count="2">
+                <span style="font-family: 'JetBrains Mono',monospace; font-size: 11px; color: var(--accent,#5EE4F7); background: rgba(34,211,238,0.08); border: 1px solid rgba(34,211,238,0.18); padding: 4px 8px; border-radius: 6px;">{{ tg }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section id="education" style="scroll-margin-top: 80px; position: relative; background: var(--surface2,#0B1930); border-top: 1px solid var(--border,rgba(255,255,255,0.06)); border-bottom: 1px solid var(--border,rgba(255,255,255,0.06)); overflow: hidden;">
+    <div style="position: absolute; inset: 0; background-image: linear-gradient(var(--border,rgba(255,255,255,0.035)) 1px, transparent 1px), linear-gradient(90deg, var(--border,rgba(255,255,255,0.035)) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%); pointer-events: none;"></div>
+    <div style="position: relative; max-width: 1200px; margin: 0 auto; padding: clamp(72px,9vw,130px) clamp(18px,4vw,40px);">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,320px),1fr)); gap: 20px 64px; align-items: end; margin-bottom: clamp(40px,5vw,64px);">
+      <div style="min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-family: 'JetBrains Mono',monospace; font-size: 12.5px; font-weight: 500; letter-spacing: 1.5px; color: var(--accent,#22D3EE); text-transform: uppercase;"><span>06</span><span style="width: 36px; height: 1px; background: currentColor; opacity: .6;"></span><span>Education</span></div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(28px,3.8vw,46px); letter-spacing: -1.4px; line-height: 1.08; margin: 18px 0 0; text-wrap: balance;">Academic foundation</h2>
+      </div>
+      <p style="font-size: 16px; line-height: 1.7; color: var(--dim,#8CA3C7); margin: 0; max-width: 520px; text-wrap: pretty;">A computer science and engineering background underpinning eight years of hands-on infrastructure work.</p>
+    </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 16px;">
+        <sc-for list="{{ education }}" as="ed" hint-placeholder-count="3">
+          <div style="border: 1px solid transparent; border-radius: 20px; background: linear-gradient(var(--surface,#0F1E38),var(--surface,#0F1E38)) padding-box, linear-gradient(140deg,rgba(34,211,238,0.45),rgba(59,130,246,0.12) 38%,rgba(255,255,255,0.05) 70%) border-box; padding: 28px; position: relative; overflow: hidden; transition: transform .3s, box-shadow .3s; min-width: 0;" style-hover="{{ cardHoverGlow }}">
+            <div style="position: absolute; right: 18px; top: 10px; font-family: 'Sora',sans-serif; font-weight: 800; font-size: 64px; letter-spacing: -3px; color: transparent; -webkit-text-stroke: 1px rgba(34,211,238,0.25); line-height: 1;">{{ ed.year }}</div>
+            <span style="position: relative; width: 50px; height: 50px; border-radius: 13px; background: linear-gradient(135deg,rgba(34,211,238,0.2),rgba(59,130,246,0.14)); border: 1px solid rgba(34,211,238,0.25); display: grid; place-items: center; color: #22D3EE;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></span>
+            <div style="position: relative; font-family: 'JetBrains Mono',monospace; font-size: 12px; color: var(--accent,#22D3EE); margin-top: 24px;">{{ ed.level }} · {{ ed.year }}</div>
+            <div style="position: relative; font-family: 'Sora',sans-serif; font-weight: 700; font-size: 18px; margin-top: 8px; line-height: 1.3; letter-spacing: -.3px;">{{ ed.degree }}</div>
+            <div style="position: relative; font-size: 14px; color: var(--dim,#8CA3C7); margin-top: 6px;">{{ ed.school }}</div>
+            <div style="position: relative; display: inline-flex; margin-top: 20px; font-weight: 700; font-size: 13px; padding: 7px 12px; border-radius: 9px; background: var(--surface2,rgba(255,255,255,0.05)); border: 1px solid var(--border,rgba(255,255,255,0.1));">{{ ed.result }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" style="scroll-margin-top: 80px; max-width: 1200px; margin: 0 auto; padding: clamp(72px,9vw,130px) clamp(18px,4vw,40px);">
+    <div style="position: relative; overflow: hidden; border: 1px solid transparent; border-radius: 30px; background: linear-gradient(var(--surface,#0F1E38),var(--surface,#0F1E38)) padding-box, linear-gradient(140deg,rgba(34,211,238,0.45),rgba(59,130,246,0.12) 38%,rgba(255,255,255,0.05) 70%) border-box; box-shadow: 0 40px 100px rgba(2,8,20,0.5);">
+      <div style="position: absolute; inset: 0; background: radial-gradient(700px 420px at 100% 0%, rgba(34,211,238,0.16), transparent 60%), radial-gradient(600px 400px at 0% 100%, rgba(59,130,246,0.14), transparent 60%); pointer-events: none;"></div>
+      <div style="position: relative; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,340px),1fr)); gap: clamp(32px,5vw,64px); padding: clamp(28px,5vw,64px);">
+        <div style="min-width: 0;">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-family: 'JetBrains Mono',monospace; font-size: 12.5px; font-weight: 500; letter-spacing: 1.5px; color: var(--accent,#22D3EE); text-transform: uppercase;"><span>07</span><span style="width: 36px; height: 1px; background: currentColor; opacity: .6;"></span><span>Get in touch</span></div>
+          <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(28px,3.6vw,44px); letter-spacing: -1.4px; margin: 18px 0 0; line-height: 1.08; text-wrap: balance;">Let's Connect and Build <span style="background: linear-gradient(120deg,#22D3EE,#3B82F6); -webkit-background-clip: text; background-clip: text; color: transparent;">Reliable IT Infrastructure</span> Together.</h2>
+          <p style="font-size: 16px; line-height: 1.7; color: var(--dim,#8CA3C7); margin: 18px 0 0; max-width: 460px;">Open to senior system administration, IT infrastructure, and network specialist opportunities.</p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); gap: 10px; margin-top: 32px;">
+            <sc-for list="{{ contacts }}" as="ct" hint-placeholder-count="4">
+              <a href="{{ ct.href }}" style="display: flex; align-items: center; gap: 13px; padding: 14px; border-radius: 14px; background: var(--surface2,rgba(255,255,255,0.03)); border: 1px solid var(--border,rgba(255,255,255,0.08)); transition: border-color .2s, background .2s;" style-hover="{{ tileHover }}">
+                <span style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg,rgba(34,211,238,0.2),rgba(59,130,246,0.14)); display: grid; place-items: center; color: #22D3EE; flex-shrink: 0;"><span dangerouslySetInnerHTML="{{ ct.icon }}" style="display: grid;"></span></span>
+                <span style="min-width: 0;">
+                  <span style="display: block; font-family: 'JetBrains Mono',monospace; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim,#8CA3C7);">{{ ct.label }}</span>
+                  <span style="display: block; font-size: 14px; font-weight: 700; color: var(--text,#EAF2FF); margin-top: 3px; word-break: break-word;">{{ ct.value }}</span>
+                </span>
+              </a>
+            </sc-for>
+          </div>
+        </div>
+        <div style="min-width: 0; background: var(--bg,rgba(6,14,28,0.6)); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 20px; padding: clamp(20px,3vw,32px);">
+          <sc-if value="{{ sent }}" hint-placeholder-val="">
+            <div style="min-height: 360px; display: grid; place-items: center; text-align: center;">
+              <div>
+                <div style="width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; background: linear-gradient(135deg,#22D3EE,#3B82F6); display: grid; place-items: center; color: #04101f; box-shadow: 0 12px 34px rgba(34,211,238,0.4);"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 21px; margin-top: 20px;">Message sent</div>
+                <div style="font-size: 14px; color: var(--dim,#8CA3C7); margin-top: 8px;">Thanks for reaching out — I'll get back to you shortly.</div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+            <form onSubmit="{{ submit }}" style="display: grid; gap: 16px;">
+              <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 18px;">Send a message</div>
+              <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit,minmax(min(100%,180px),1fr));">
+                <label style="display: grid; gap: 7px;"><span style="font-family: 'JetBrains Mono',monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim,#8CA3C7);">Name</span><input required placeholder="Your name" style="{{ inputStyle }}"></label>
+                <label style="display: grid; gap: 7px;"><span style="font-family: 'JetBrains Mono',monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim,#8CA3C7);">Email</span><input required type="email" placeholder="you@company.com" style="{{ inputStyle }}"></label>
+              </div>
+              <label style="display: grid; gap: 7px;"><span style="font-family: 'JetBrains Mono',monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim,#8CA3C7);">Subject</span><input placeholder="Role, project, or question" style="{{ inputStyle }}"></label>
+              <label style="display: grid; gap: 7px;"><span style="font-family: 'JetBrains Mono',monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--dim,#8CA3C7);">Message</span><textarea required rows="5" placeholder="How can I help?" style="{{ inputStyle }}"></textarea></label>
+              <button type="submit" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Sora',sans-serif; font-weight: 700; font-size: 15px; color: #04101f; background: linear-gradient(135deg,#22D3EE,#3B82F6); border: none; padding: 16px; border-radius: 12px; cursor: pointer; box-shadow: 0 12px 30px rgba(34,211,238,0.32); transition: transform .2s;" style-hover="{{ liftHover }}">Send Message <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button>
+            </form>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="border-top: 1px solid var(--border,rgba(255,255,255,0.08)); background: var(--surface2,#0B1930);">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 36px clamp(18px,4vw,40px); display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg,#22D3EE,#3B82F6); display: grid; place-items: center; color: #04101f; font-family: 'Sora',sans-serif; font-weight: 800; font-size: 15px;">MH</span>
+        <div>
+          <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 14px;">Md. Mehedee Hassan</div>
+          <div style="font-size: 12px; color: var(--dim,#8CA3C7);">Senior System Administrator · Dhaka, Bangladesh</div>
+        </div>
+      </div>
+      <div style="font-size: 12.5px; color: var(--dim,#8CA3C7);">© {{ year }} Md. Mehedee Hassan. All rights reserved.</div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { theme: 'dark', sent: false, activeSkill: 0, vw: typeof window !== 'undefined' ? window.innerWidth : 1280, menu: false };
+
+  componentDidMount() {
+    this.applyTheme();
+    this._scrollY = 0;
+    this._onScroll = () => {
+      this._scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      const r = this.root && this.root.getBoundingClientRect();
+      if (r && this.progress) {
+        const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - window.innerHeight)));
+        this.progress.style.transform = `scaleX(${p})`;
+      }
+    };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onResize = () => { const vw = window.innerWidth; if (vw !== this.state.vw) this.setState({ vw, menu: vw < 820 ? this.state.menu : false }); };
+    window.addEventListener('resize', this._onResize);
+    this._onResize();
+    requestAnimationFrame(() => this._onResize());
+    setTimeout(() => this._onResize(), 300);
+    this._onScroll();
+    requestAnimationFrame(() => setTimeout(() => this.initReveal(), 60));
+  }
+
+  initReveal() {
+    const root = this.root;
+    if (!root || !('IntersectionObserver' in window)) return;
+    const set = new Set();
+    root.querySelectorAll('section h2').forEach(h => {
+      if (h.previousElementSibling) set.add(h.previousElementSibling);
+      set.add(h);
+      let n = h.nextElementSibling;
+      while (n && n.tagName === 'P') { set.add(n); n = n.nextElementSibling; }
+    });
+    const cards = [...root.querySelectorAll('section *')].filter(el => (el.getAttribute('style') || '').includes('var(--surface,'));
+    cards.forEach(el => { if (![...set].some(s => s.contains(el)) && !cards.some(c => c !== el && c.contains(el))) set.add(el); });
+    root.querySelectorAll('#experience [style*="padding: 0px 0px 34px 54px"], #experience [style*="padding: 0 0 34px 54px"]').forEach(el => {
+      [...set].forEach(s => { if (el.contains(s)) set.delete(s); });
+      set.add(el);
+    });
+    const els = [...set];
+    els.forEach(el => {
+      const sibs = el.parentElement ? [...el.parentElement.children].filter(c => set.has(c)) : [el];
+      const i = Math.min(sibs.indexOf(el), 6);
+      const prev = el.style.transition;
+      el.style.opacity = '0';
+      el.style.translate = '0 36px';
+      el.style.transition = (prev ? prev + ', ' : '') + `opacity .8s cubic-bezier(.2,.7,.2,1) ${i * 90}ms, translate .8s cubic-bezier(.2,.7,.2,1) ${i * 90}ms`;
+    });
+    this._io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.style.opacity = '1';
+          en.target.style.translate = '0 0';
+          this._io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(el => this._io.observe(el));
+  }
+  componentDidUpdate() { this.applyTheme(); }
+  componentWillUnmount() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._ro) this._ro.disconnect();
+    if (this._onMove) window.removeEventListener('pointermove', this._onMove);
+    if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+    if (this._io) this._io.disconnect();
+    if (this._three) this._three.renderer.dispose();
+  }
+
+  applyTheme() {
+    const el = this.root;
+    if (!el) return;
+    const LIGHT = {
+      '--bg': '#F3F7FF', '--surface': '#FFFFFF', '--surface2': '#EBF2FF',
+      '--text': '#0A1527', '--dim': '#51688E', '--border': 'rgba(10,21,39,0.10)',
+      '--accent': '#0E8CAE', '--accent2': '#2563EB', '--glow': 'rgba(37,99,235,0.10)',
+      '--nav': 'rgba(255,255,255,0.82)'
+    };
+    if (this.state.theme === 'light') {
+      for (const k in LIGHT) el.style.setProperty(k, LIGHT[k]);
+    } else {
+      for (const k in LIGHT) el.style.removeProperty(k);
+    }
+  }
+
+  async initThree() {
+    const canvas = this.canvas;
+    if (!canvas) return;
+    let THREE;
+    try {
+      THREE = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+    } catch (err) { return; }
+    if (!this.canvas) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+    camera.position.z = 62;
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this._three = { renderer };
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const R = 26;
+    group.rotation.z = 0.32;
+    group.rotation.x = 0.18;
+    const globe = new THREE.Group();
+    globe.rotation.y = Math.PI - 0.7;
+    group.add(globe);
+    this._globe = globe;
+
+    const dotTex = (() => {
+      const c = document.createElement('canvas'); c.width = c.height = 64;
+      const x = c.getContext('2d');
+      const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.45, 'rgba(255,255,255,0.9)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    })();
+    const glowTex = (() => {
+      const c = document.createElement('canvas'); c.width = c.height = 256;
+      const x = c.getContext('2d');
+      const g = x.createRadialGradient(128, 128, 60, 128, 128, 128);
+      g.addColorStop(0, 'rgba(34,211,238,0.35)'); g.addColorStop(0.5, 'rgba(59,130,246,0.12)'); g.addColorStop(1, 'rgba(59,130,246,0)');
+      x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+      return new THREE.CanvasTexture(c);
+    })();
+
+    const mask = await new Promise(res => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      const t = setTimeout(() => res(null), 6000);
+      img.onload = () => {
+        clearTimeout(t);
+        try {
+          const c = document.createElement('canvas'); c.width = 720; c.height = 360;
+          const x = c.getContext('2d'); x.drawImage(img, 0, 0, 720, 360);
+          res(x.getImageData(0, 0, 720, 360).data);
+        } catch (e) { res(null); }
+      };
+      img.onerror = () => { clearTimeout(t); res(null); };
+      img.src = 'https://unpkg.com/three-globe@2.31.0/example/img/earth-water.png';
+    });
+    if (!this.canvas) return;
+    const isLand = (lat, lon) => {
+      if (!mask) return true;
+      const u = Math.min(719, Math.floor((lon + 180) / 360 * 720));
+      const v = Math.min(359, Math.floor((90 - lat) / 180 * 360));
+      return mask[(v * 720 + u) * 4] < 128;
+    };
+    const toXYZ = (lat, lon, r) => {
+      const phi = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180;
+      return new THREE.Vector3(-r * Math.sin(phi) * Math.cos(th), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(th));
+    };
+
+    const occ = new THREE.Mesh(new THREE.SphereGeometry(R * 0.985, 48, 48), new THREE.MeshBasicMaterial({ colorWrite: false }));
+    occ.renderOrder = 0;
+    globe.add(occ);
+
+    const COUNT = mask ? 18000 : 3500, pos = [];
+    for (let i = 0; i < COUNT; i++) {
+      const y = 1 - (i / (COUNT - 1)) * 2;
+      const lat = Math.asin(y) * 180 / Math.PI;
+      const lon = ((i * 137.50776) % 360) - 180;
+      if (!isLand(lat, lon)) continue;
+      const v = toXYZ(lat, lon, R);
+      pos.push(v.x, v.y, v.z);
+    }
+    const pg = new THREE.BufferGeometry();
+    pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    const dots = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x5EE4F7, size: mask ? 0.42 : 0.6, map: dotTex, transparent: true, opacity: 0.85, depthWrite: false, alphaTest: 0.05 }));
+    dots.renderOrder = 1;
+    globe.add(dots);
+
+    const ringPts = [];
+    for (let i = 0; i <= 180; i++) { const a = i / 180 * Math.PI * 2; ringPts.push(new THREE.Vector3(Math.cos(a) * R * 1.32, 0, Math.sin(a) * R * 1.32)); }
+    const ring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(ringPts), new THREE.LineBasicMaterial({ color: 0x38BDF8, transparent: true, opacity: 0.18 }));
+    ring.rotation.x = 0.35;
+    group.add(ring);
+
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    glow.scale.set(R * 3.1, R * 3.1, 1);
+    glow.renderOrder = -1;
+    group.add(glow);
+
+    const hub = { lat: 23.81, lon: 90.41 };
+    const cities = [[1.35, 103.82], [51.5, -0.12], [25.2, 55.27], [50.11, 8.68], [35.68, 139.69], [40.71, -74.0], [-33.87, 151.2], [19.07, 72.88]];
+    const hubV = toXYZ(hub.lat, hub.lon, R);
+    const marker = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 16), new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
+    marker.position.copy(hubV); globe.add(marker);
+    const pulse = new THREE.Mesh(new THREE.RingGeometry(0.7, 0.95, 40), new THREE.MeshBasicMaterial({ color: 0x22D3EE, transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false }));
+    pulse.position.copy(hubV.clone().multiplyScalar(1.002)); pulse.lookAt(hubV.clone().multiplyScalar(2)); globe.add(pulse);
+    this._pulse = pulse;
+
+    this._arcs = cities.map(([la, lo], i) => {
+      const b = toXYZ(la, lo, R);
+      const mid = hubV.clone().add(b).multiplyScalar(0.5);
+      const d = hubV.distanceTo(b);
+      mid.normalize().multiplyScalar(R + d * 0.32);
+      const curve = new THREE.QuadraticBezierCurve3(hubV, mid, b);
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(64)), new THREE.LineBasicMaterial({ color: 0x38BDF8, transparent: true, opacity: 0.45 }));
+      globe.add(line);
+      const end = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 10), new THREE.MeshBasicMaterial({ color: 0x5EE4F7 }));
+      end.position.copy(b); globe.add(end);
+      const bead = new THREE.Mesh(new THREE.SphereGeometry(0.38, 10, 10), new THREE.MeshBasicMaterial({ color: 0xFFFFFF }));
+      globe.add(bead);
+      return { curve, bead, t: i / cities.length, speed: 0.0035 + (i % 3) * 0.0012 };
+    });
+
+    const resize = () => {
+      const r = canvas.getBoundingClientRect();
+      if (!r.width) return;
+      renderer.setSize(r.width, r.height, false);
+      camera.aspect = r.width / r.height;
+      camera.updateProjectionMatrix();
+      const vh = 2 * Math.tan(Math.PI / 6) * 62, vw = vh * camera.aspect;
+      this._baseX = 0; this._baseY = 0;
+      group.scale.setScalar(1.05);
+    };
+    resize();
+    this._ro = new ResizeObserver(resize);
+    this._ro.observe(canvas);
+
+    let mx = 0, my = 0;
+    this._onMove = e => { mx = e.clientX / window.innerWidth - 0.5; my = e.clientY / window.innerHeight - 0.5; };
+    window.addEventListener('pointermove', this._onMove);
+
+    const animate = () => {
+      const sy = this._scrollY || 0;
+      globe.rotation.y += 0.0016;
+      group.position.x = this._baseX || 0;
+      group.position.y = 0;
+      camera.position.z = 62 + Math.min(sy, 800) * 0.02;
+      const now = performance.now() / 1000;
+      const k = (now % 2) / 2;
+      this._pulse.scale.setScalar(1 + k * 3);
+      this._pulse.material.opacity = 0.8 * (1 - k);
+      for (const a of this._arcs) {
+        a.t = (a.t + a.speed) % 1;
+        a.bead.position.copy(a.curve.getPoint(a.t));
+      }
+      camera.position.x += (mx * 7 - camera.position.x) * 0.04;
+      camera.position.y += (-my * 7 - camera.position.y) * 0.04;
+      camera.lookAt(0, 0, 0);
+      renderer.render(scene, camera);
+      this._raf = requestAnimationFrame(animate);
+    };
+    animate();
+  }
+
+  renderVals() {
+    const ico = {
+      server: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>',
+      network: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M12 8v4M12 12H5v4M12 12h7v4"/></svg>',
+      cloud: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.5 9 4.5 4.5 0 0 0 6 18h11.5z"/></svg>',
+      shield: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
+      ops: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>',
+      directory: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg>',
+      router: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="20" height="7" rx="2"/><path d="M6 17.5h.01M10 17.5h4M12 7v4M8.5 9a5 5 0 0 1 7 0"/></svg>',
+      mail: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>',
+      lock: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+      backup: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>',
+      wifi: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>',
+      desk: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+      phone: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z"/></svg>',
+      pin: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+      link: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>'
+    };
+    for (const k in ico) ico[k] = { __html: ico[k] };
+
+    const inputStyle = {
+      width: '100%', background: 'var(--surface2,rgba(255,255,255,0.04))',
+      border: '1px solid var(--border,rgba(255,255,255,0.12))', borderRadius: '11px',
+      padding: '13px 15px', color: 'var(--text,#EAF2FF)', fontSize: '14.5px',
+      fontFamily: "'Manrope',sans-serif", outline: 'none', resize: 'vertical'
+    };
+
+    const V = {
+      setRoot: el => { this.root = el; if (el) this.applyTheme(); },
+      canvasRef: el => { this.canvas = el; },
+      progressRef: el => { this.progress = el; },
+      toggleTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+      themeIcon: this.state.theme === 'dark' ? '\u2600\ufe0f' : '\ud83c\udf11',
+      cvHref: 'uploads/Resume%20of%20Md.Mehedee%20Hassan%20.pdf',
+      year: new Date().getFullYear(),
+      sent: this.state.sent,
+      notSent: !this.state.sent,
+      submit: e => { e.preventDefault(); this.setState({ sent: true }); },
+      inputStyle,
+      navHover: { color: 'var(--text,#EAF2FF)' },
+      liftHover: { transform: 'translateY(-2px)' },
+      outlineHover: { borderColor: 'var(--accent,#22D3EE)', color: 'var(--accent,#5EE4F7)' },
+      cardHover: { transform: 'translateY(-4px)', borderColor: 'rgba(34,211,238,0.4)' },
+
+      navLinks: [
+        { label: 'About', href: '#about' },
+        { label: 'Experience', href: '#experience' },
+        { label: 'Skills', href: '#skills' },
+        { label: 'Certifications', href: '#certifications' },
+        { label: 'Projects', href: '#projects' },
+        { label: 'Contact', href: '#contact' }
+      ],
+
+      heroStats: [
+        { value: '8+', label: 'Years' },
+        { value: '99.5%', label: 'Uptime' },
+        { value: '8', label: 'Certifications' }
+      ],
+
+      aboutCards: [
+        { icon: ico.server, title: 'Server Administration', desc: 'Windows Server 2012–2019 & Linux — AD, DC, file, FTP, DB.' },
+        { icon: ico.network, title: 'Network Engineering', desc: 'Cisco & MikroTik routing, switching, VLAN, VPN, firewalls.' },
+        { icon: ico.cloud, title: 'Cloud & Virtualization', desc: 'Azure administration, VMware & Hyper-V virtual machines.' },
+        { icon: ico.shield, title: 'Security & Monitoring', desc: 'Fortinet firewall, access control, Nagios & CCTV monitoring.' }
+      ],
+
+      journey: [
+        { stage: '2018', role: 'System Administrator, IT', year: 'Creative IT Institute' },
+        { stage: '2025', role: 'Sr. System Administrator, IT', year: 'Creative IT Institute' },
+        { stage: 'NOW', role: 'IT Support & Network Specialist', year: 'Apex DMIT Ltd' }
+      ],
+
+      experience: [
+        { role: 'IT Support & Network Specialist', company: 'Apex DMIT Ltd', period: 'Jun 2026 – Present', location: 'Catharsis Tower, House #133, Rd 12, Dhaka 1213', current: true, summary: 'Supporting and securing enterprise network and IT infrastructure — device configuration, firewall management, monitoring, and end-to-end IT support.' },
+        { role: 'Sr. System Administrator, IT', company: 'Creative IT Institute', period: 'Jan 2025 – May 2026', location: 'Momtaz Plaza, Road #04, Dhanmondi, Dhaka-1205', current: false, summary: 'Led server, network and security operations — PDC, AD, DB, FS, IPTSP, FTP & ERP servers at 99.5%+ uptime, Microsoft 365 / Exchange administration, and internal IT documentation.' },
+        { role: 'System Administrator, IT', company: 'Creative IT Institute', period: 'Jan 2018 – Dec 2024', location: 'Momtaz Plaza, Road #04, Dhanmondi, Dhaka-1205', current: false, summary: 'Installed and configured routers, switches, servers and firewalls; ran daily multi-server backups, CCTV monitoring, IT asset management and ServiceDesk operations.' }
+      ],
+
+      skillGroups: [
+        { icon: ico.server, title: 'System Administration', items: ['Windows Server 2012/2016/2019', 'Active Directory', 'Domain Controller', 'File Server', 'Linux Server', 'FTP Server', 'Backup & Recovery'] },
+        { icon: ico.network, title: 'Networking', items: ['Cisco Networking', 'MikroTik RouterOS', 'Routing & Switching', 'VLAN, DHCP, DNS', 'VPN & Firewall', 'Wireless Networking', 'Bandwidth Management', 'WAN & LAN'] },
+        { icon: ico.cloud, title: 'Cloud & Virtualization', items: ['Microsoft Azure', 'Azure Administration', 'Virtual Machines', 'VMware', 'Hyper-V'] },
+        { icon: ico.shield, title: 'Security & Monitoring', items: ['Fortinet Firewall', 'Network Security', 'CCTV & Surveillance', 'Nagios Monitoring', 'Access Control'] },
+        { icon: ico.ops, title: 'IT Operations', items: ['Microsoft 365', 'Exchange & Outlook', 'ERP & CRM Support', 'ServiceDesk Management', 'IT Asset Management', 'Technical Documentation'] }
+      ],
+
+      certs: [
+        { name: 'Azure Administrator Associate (AZ-104)', issuer: 'Microsoft Certified', credId: 'D9B383E0172D10A9', status: 'Verified', statusColor: '#04101f', statusBg: 'linear-gradient(135deg,#22D3EE,#3B82F6)' },
+        { name: 'MikroTik Certified Network Associate', issuer: 'SIA MikroTik · MTCNA', credId: '20237NA9632', status: 'Verified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'MikroTik Certified Routing Engineer', issuer: 'SIA MikroTik · MTCRE', credId: '2607RE0543', status: 'Verified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'Cisco Certified Network Associate', issuer: 'CCNA · Linux Pathshala', credId: '', status: 'Certified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'CompTIA A+', issuer: 'Creative IT Institute', credId: '', status: 'Certified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'MCSA', issuer: 'Creative IT Institute', credId: '', status: 'Certified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'IT Support Level 3', issuer: 'Competency Standard for IT Support', credId: '', status: 'Certified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'RHCSA', issuer: 'Red Hat · Linux Pathshala', credId: '', status: 'In Progress', statusColor: '#FBBF24', statusBg: 'rgba(251,191,36,0.14)' }
+      ],
+
+      projects: [
+        { num: '01', icon: ico.network, title: 'Enterprise Network Infrastructure', desc: 'Design and management of WAN/LAN, VLAN segmentation, and bandwidth control across enterprise sites.' },
+        { num: '02', icon: ico.directory, title: 'Windows Server & Active Directory', desc: 'Deployment and administration of domain controllers, AD, file and FTP servers.' },
+        { num: '03', icon: ico.router, title: 'MikroTik Routing & Management', desc: 'RouterOS configuration, PPPoE, queues, routing and network optimization.' },
+        { num: '04', icon: ico.mail, title: 'Microsoft 365 & Email Administration', desc: 'Exchange, Office 365 and Outlook configuration, troubleshooting and mail security.' },
+        { num: '05', icon: ico.lock, title: 'Network Security & Firewall', desc: 'Fortinet firewall policies, access control, VPN and perimeter security hardening.' },
+        { num: '06', icon: ico.backup, title: 'Backup & Disaster Recovery', desc: 'Automated daily backups across servers, routers and switches with restore testing.' },
+        { num: '07', icon: ico.wifi, title: 'Wi-Fi & Wireless Management', desc: 'Wireless AP design, WLAN analysis, troubleshooting and Wi-Fi zone configuration.' },
+        { num: '08', icon: ico.desk, title: 'IT ServiceDesk & Asset Management', desc: 'ServiceDesk operations, IT asset tracking, inventory and technical documentation.' }
+      ],
+
+      education: [
+        { degree: 'BSc in Computer Science & Engineering', school: 'Bangladesh University', year: '2021', result: 'CGPA 3.46 / 4' },
+        { degree: 'Diploma in Computer Technology', school: 'Thakurgaon Polytechnic Institute', year: '2017', result: 'CGPA 3.16 / 4' },
+        { degree: 'SSC — Science', school: 'Baura Public High School', year: '2013', result: 'GPA 4.81 / 5' }
+      ],
+
+      contacts: [
+        { icon: ico.mail, label: 'Email', value: 'mehedeecse@gmail.com', href: 'mailto:mehedeecse@gmail.com' },
+        { icon: ico.phone, label: 'Phone', value: '+88 01780912554', href: 'tel:+8801780912554' },
+        { icon: ico.pin, label: 'Location', value: 'Dhanmondi, Dhaka-1205, Bangladesh', href: '#contact' },
+        { icon: ico.link, label: 'LinkedIn', value: 'linkedin.com/in/mehedee-hassan', href: '#' }
+      ]
+    };
+    const blurbs = ['Windows & Linux servers, directory services and data protection.', 'Enterprise routing, switching, wireless and WAN/LAN design.', 'Cloud administration and virtualized server environments.', 'Perimeter security, access control and proactive monitoring.', 'Productivity platforms, service management and documentation.'];
+    const paths = ['~/skills/sysadmin', '~/skills/networking', '~/skills/cloud', '~/skills/security', '~/skills/it-ops'];
+    const act = this.state.activeSkill;
+    V.skillTabs = V.skillGroups.map((g, i) => ({
+      ...g, num: String(i + 1).padStart(2, '0'), count: g.items.length,
+      select: () => this.setState({ activeSkill: i }),
+      style: {
+        display: 'flex', alignItems: 'center', gap: '14px', width: '100%', padding: '14px 16px', borderRadius: '14px', cursor: 'pointer',
+        fontFamily: "'Manrope',sans-serif", transition: 'all .25s', color: 'inherit',
+        border: i === act ? '1px solid rgba(34,211,238,0.45)' : '1px solid var(--border,rgba(255,255,255,0.08))',
+        background: i === act ? 'linear-gradient(90deg,rgba(34,211,238,0.14),rgba(59,130,246,0.04))' : 'var(--surface,#0F1E38)',
+        boxShadow: i === act ? '0 10px 30px rgba(34,211,238,0.12), inset 3px 0 0 #22D3EE' : 'none'
+      }
+    }));
+    V.activeGroup = { ...V.skillGroups[act], blurb: blurbs[act], path: paths[act] };
+    const logos = { 'Apex DMIT Ltd': 'AD', 'Creative IT Institute': 'CIT' };
+    const hl = [
+      [],
+      ['99.5%+ uptime across PDC, AD, DB, FS, IPTSP, FTP & ERP servers', 'Exchange, Office 365 & Outlook administration', 'Major projects: upgrades, migrations & deployments', 'Internal wiki, manuals & IT policies'],
+      ['Router, switch, server & firewall installation', 'Daily backups across servers, routers & switches', 'Nagios & Cambium Cloud monitoring', 'CCTV, IT asset stock & ServiceDesk management']
+    ];
+    V.experience = V.experience.map((e, i) => ({ ...e, logo: logos[e.company] || 'IT', highlights: hl[i] || [], hasHighlights: (hl[i] || []).length > 0 }));
+    const codes = ['AZ-104', 'MTCNA', 'MTCRE', 'CCNA', 'A+', 'MCSA', 'L3', 'RHCSA'];
+    V.certRest = V.certs.map((c, i) => ({ ...c, code: codes[i] })).slice(1);
+    const tags = [['WAN/LAN', 'VLAN'], ['AD', 'Windows Server'], ['RouterOS', 'PPPoE'], ['Exchange', 'M365'], ['Fortinet', 'VPN'], ['Backup', 'Restore'], ['WLAN', 'MikroTik AP'], ['ServiceDesk', 'Assets']];
+    V.projects = V.projects.map((p, i) => ({ ...p, tags: tags[i] }));
+    const levels = ['Bachelor', 'Diploma', 'Secondary'];
+    V.education = V.education.map((e, i) => ({ ...e, level: levels[i] }));
+    V.servers = ['PDC', 'AD', 'DB', 'FS', 'IPTSP', 'FTP', 'ERP'];
+    V.facts = [{ k: 'Experience', v: '8+ years' }, { k: 'Based in', v: 'Dhaka, BD' }, { k: 'Languages', v: 'Bangla · English' }];
+    const mob = this.state.vw < 820;
+    V.isMobile = mob; V.notMobile = !mob;
+    V.showMenu = mob && this.state.menu;
+    V.toggleMenu = () => this.setState(st => ({ menu: !st.menu }));
+    V.closeMenu = () => this.setState({ menu: false });
+    V.menuIcon = { __html: this.state.menu ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>' : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>' };
+    V.journeyPos = this.state.vw < 900 ? 'relative' : 'sticky';
+    V.tileHover = { borderColor: 'rgba(34,211,238,0.4)', background: 'rgba(34,211,238,0.05)' };
+    V.cardHoverGlow = { transform: 'translateY(-5px)', boxShadow: '0 24px 60px rgba(34,211,238,0.14)' };
+    return V;
+  }
+}
+</script>
+</body>
+</html>

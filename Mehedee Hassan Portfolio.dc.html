@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: 'Manrope', system-ui, sans-serif; background: #0A1527; }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(34,211,238,0.3); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  @keyframes pulse { 0%,100% { opacity: .6; } 50% { opacity: 1; } }
+  @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+</style>
+</helmet>
+<div ref="{{ setRoot }}" style="background: var(--bg,#0A1527); color: var(--text,#EAF2FF); font-family: 'Manrope', sans-serif; min-height: 100vh; overflow-x: hidden; transition: background .4s ease, color .4s ease;">
+
+  <!-- NAV -->
+  <nav style="position: sticky; top: 0; z-index: 50; backdrop-filter: blur(16px); background: var(--nav,rgba(9,18,35,0.72)); border-bottom: 1px solid var(--border,rgba(255,255,255,0.08));">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 14px clamp(18px,4vw,40px); display: flex; align-items: center; gap: 20px;">
+      <a href="#top" style="display: flex; align-items: center; gap: 12px; font-family: 'Sora',sans-serif; font-weight: 700;">
+        <span style="width: 40px; height: 40px; border-radius: 11px; background: linear-gradient(135deg,#22D3EE,#3B82F6); display: grid; place-items: center; color: #04101f; font-weight: 800; font-size: 17px; box-shadow: 0 6px 20px rgba(34,211,238,0.35);">MH</span>
+        <span style="display: flex; flex-direction: column; line-height: 1;">
+          <span style="font-size: 15px; letter-spacing: .2px;">Md. Mehedee Hassan</span>
+          <span style="font-size: 11px; font-weight: 500; color: var(--dim,#8CA3C7); font-family: 'Manrope',sans-serif; margin-top: 3px;">System Administrator</span>
+        </span>
+      </a>
+      <div style="flex: 1;"></div>
+      <div ref="{{ progressRef }}" style="position: absolute; left: 0; bottom: -1px; height: 2px; width: 100%; transform-origin: left; transform: scaleX(0); background: linear-gradient(90deg,#22D3EE,#3B82F6); box-shadow: 0 0 10px rgba(34,211,238,0.6); pointer-events: none;"></div>
+      <div style="display: flex; align-items: center; gap: clamp(4px,1.4vw,22px); flex-wrap: wrap; justify-content: flex-end;">
+        <sc-for list="{{ navLinks }}" as="link" hint-placeholder-count="6">
+          <a href="{{ link.href }}" style="font-size: 14px; font-weight: 600; color: var(--dim,#8CA3C7); padding: 6px 2px; transition: color .2s;" style-hover="{{ navHover }}">{{ link.label }}</a>
+        </sc-for>
+        <button onClick="{{ toggleTheme }}" aria-label="Toggle theme" style="width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--border,rgba(255,255,255,0.12)); background: var(--surface2,rgba(255,255,255,0.04)); color: var(--text,#EAF2FF); cursor: pointer; display: grid; place-items: center; transition: all .2s;">
+          <span style="font-size: 16px;">{{ themeIcon }}</span>
+        </button>
+        <a href="{{ cvHref }}" download style="font-size: 14px; font-weight: 700; color: #04101f; background: linear-gradient(135deg,#22D3EE,#3B82F6); padding: 10px 18px; border-radius: 10px; box-shadow: 0 6px 20px rgba(34,211,238,0.3); transition: transform .2s;" style-hover="{{ liftHover }}">Download CV</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header id="top" style="position: relative; overflow: hidden;">
+    <canvas ref="{{ canvasRef }}" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: .9;"></canvas>
+    <div style="position: absolute; inset: 0; background: radial-gradient(1000px 600px at 80% -10%, var(--glow,rgba(59,130,246,0.22)), transparent 60%), radial-gradient(800px 500px at 0% 30%, rgba(34,211,238,0.10), transparent 60%); pointer-events: none;"></div>
+    <div style="position: relative; max-width: 1200px; margin: 0 auto; padding: clamp(60px,9vw,120px) clamp(18px,4vw,40px) clamp(70px,9vw,120px); display: grid; grid-template-columns: minmax(0,1.15fr) minmax(0,0.85fr); gap: clamp(32px,5vw,64px); align-items: center;">
+      <div style="min-width: 0;">
+        <div style="display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border,rgba(34,211,238,0.3)); background: var(--surface2,rgba(34,211,238,0.07)); font-size: 12.5px; font-weight: 600; color: var(--accent,#5EE4F7); letter-spacing: .3px; animation: fadeUp .6s both;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: #22D3EE; box-shadow: 0 0 10px #22D3EE; animation: pulse 2s infinite;"></span>
+          Available for enterprise IT roles · Dhaka, BD
+        </div>
+        <h1 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(34px,5.6vw,62px); line-height: 1.05; letter-spacing: -1.5px; margin: 22px 0 0;">
+          Hello, I'm<br><span style="background: linear-gradient(120deg,#22D3EE,#3B82F6 60%,#818CF8); -webkit-background-clip: text; background-clip: text; color: transparent;">Md. Mehedee Hassan</span>
+        </h1>
+        <p style="font-family: 'Sora',sans-serif; font-weight: 600; font-size: clamp(16px,2vw,21px); color: var(--text,#EAF2FF); margin: 18px 0 0; letter-spacing: -.2px;">Senior System Administrator &amp; IT Infrastructure Specialist</p>
+        <p style="font-size: clamp(15px,1.5vw,17px); line-height: 1.7; color: var(--dim,#8CA3C7); max-width: 540px; margin: 16px 0 0;">8+ years designing, securing, and optimizing enterprise IT infrastructure — Windows &amp; Linux servers, networking, cloud, and virtualization. Experienced in keeping mission-critical systems running at 99.5%+ uptime.</p>
+        <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 30px;">
+          <a href="{{ cvHref }}" download style="display: inline-flex; align-items: center; gap: 9px; font-weight: 700; color: #04101f; background: linear-gradient(135deg,#22D3EE,#3B82F6); padding: 14px 26px; border-radius: 12px; box-shadow: 0 10px 30px rgba(34,211,238,0.33); transition: transform .2s;" style-hover="{{ liftHover }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download My CV
+          </a>
+          <a href="#contact" style="display: inline-flex; align-items: center; gap: 9px; font-weight: 700; color: var(--text,#EAF2FF); background: var(--surface2,rgba(255,255,255,0.05)); border: 1px solid var(--border,rgba(255,255,255,0.14)); padding: 14px 26px; border-radius: 12px; transition: all .2s;" style-hover="{{ outlineHover }}">Let's Connect</a>
+        </div>
+        <div style="display: flex; gap: clamp(20px,4vw,44px); margin-top: 40px; flex-wrap: wrap;">
+          <sc-for list="{{ heroStats }}" as="s" hint-placeholder-count="3">
+            <div>
+              <div style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(22px,3vw,30px); background: linear-gradient(120deg,#22D3EE,#3B82F6); -webkit-background-clip: text; background-clip: text; color: transparent;">{{ s.value }}</div>
+              <div style="font-size: 12.5px; color: var(--dim,#8CA3C7); font-weight: 600; margin-top: 4px;">{{ s.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="position: relative; display: grid; place-items: center; min-width: 0;">
+        <div style="position: relative; width: min(340px,80vw); aspect-ratio: 4/5;">
+          <div style="position: absolute; inset: -14px; border-radius: 28px; background: linear-gradient(135deg,rgba(34,211,238,0.5),rgba(59,130,246,0.2) 50%,transparent); filter: blur(2px);"></div>
+          <div style="position: absolute; inset: 0; border-radius: 24px; overflow: hidden; border: 1px solid var(--border,rgba(255,255,255,0.14)); box-shadow: 0 30px 70px rgba(2,8,20,0.55);">
+            <image-slot id="mehedee-photo" shape="rect" placeholder="Drop your profile photo"></image-slot>
+          </div>
+          <div style="position: absolute; left: -26px; bottom: 48px; background: var(--surface,#0F1E38); border: 1px solid var(--border,rgba(255,255,255,0.12)); border-radius: 14px; padding: 12px 16px; box-shadow: 0 14px 34px rgba(2,8,20,0.5); animation: floaty 5s ease-in-out infinite;">
+            <div style="font-size: 11px; color: var(--dim,#8CA3C7); font-weight: 600;">Uptime maintained</div>
+            <div style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: 19px; color: var(--text,#EAF2FF);">99.5%<span style="color: #22D3EE;">+</span></div>
+          </div>
+          <div style="position: absolute; right: -22px; top: 36px; background: var(--surface,#0F1E38); border: 1px solid var(--border,rgba(255,255,255,0.12)); border-radius: 14px; padding: 12px 16px; box-shadow: 0 14px 34px rgba(2,8,20,0.5); animation: floaty 6s ease-in-out infinite .6s;">
+            <div style="font-size: 11px; color: var(--dim,#8CA3C7); font-weight: 600;">Certifications</div>
+            <div style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: 19px; color: var(--text,#EAF2FF);">AZ-104 · MTCNA</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="position: relative; text-align: center; padding-bottom: 26px; font-size: 13px; letter-spacing: 2px; color: var(--dim,#8CA3C7); font-weight: 600;">EXPERIENCED IN MANAGING · SECURING · OPTIMIZING IT INFRASTRUCTURE</div>
+  </header>
+
+  <!-- ABOUT -->
+  <section id="about" style="scroll-margin-top: 80px; padding: clamp(64px,8vw,120px) clamp(18px,4vw,40px); max-width: 1200px; margin: 0 auto;">
+    <div style="display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(32px,5vw,64px); align-items: center;">
+      <div style="min-width: 0;">
+        <div style="font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--accent,#22D3EE); text-transform: uppercase;">About Me</div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(26px,3.4vw,40px); letter-spacing: -1px; margin: 14px 0 0; line-height: 1.1;">Building resilient infrastructure that enterprises depend on</h2>
+        <p style="font-size: 16px; line-height: 1.75; color: var(--dim,#8CA3C7); margin: 20px 0 0;">I'm an IT professional with 8+ years managing enterprise IT environments end to end — from domain controllers and Active Directory to firewalls, cloud workloads, and ServiceDesk operations. My focus is reliability: designing, implementing, and maintaining systems that stay secure and available under real-world load.</p>
+        <p style="font-size: 16px; line-height: 1.75; color: var(--dim,#8CA3C7); margin: 16px 0 0;">Across Creative IT Institute and Apex DMIT Ltd, I've kept core servers — PDC, AD, DB, FS, IPTSP, FTP and ERP — running at 99.5%+ uptime, while deploying network, security, and cloud initiatives from the ground up.</p>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 16px; min-width: 0;">
+        <sc-for list="{{ aboutCards }}" as="c" hint-placeholder-count="4">
+          <div style="background: var(--surface,#0F1E38); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 16px; padding: 22px; transition: transform .25s, border-color .25s;" style-hover="{{ cardHover }}">
+            <div style="width: 42px; height: 42px; border-radius: 11px; background: linear-gradient(135deg,rgba(34,211,238,0.18),rgba(59,130,246,0.12)); display: grid; place-items: center; color: #22D3EE; margin-bottom: 14px;">
+              <span dangerouslySetInnerHTML="{{ c.icon }}"></span>
+            </div>
+            <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 16px;">{{ c.title }}</div>
+            <div style="font-size: 13px; color: var(--dim,#8CA3C7); line-height: 1.5; margin-top: 6px;">{{ c.desc }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience" style="scroll-margin-top: 80px; background: var(--surface2,#0B1930); border-top: 1px solid var(--border,rgba(255,255,255,0.06)); border-bottom: 1px solid var(--border,rgba(255,255,255,0.06));">
+    <div style="max-width: 1200px; margin: 0 auto; padding: clamp(64px,8vw,120px) clamp(18px,4vw,40px);">
+      <div style="text-align: center; max-width: 640px; margin: 0 auto;">
+        <div style="font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--accent,#22D3EE); text-transform: uppercase;">Professional Experience</div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(26px,3.4vw,40px); letter-spacing: -1px; margin: 14px 0 0;">A track record of scaling IT operations</h2>
+      </div>
+
+      <!-- Journey strip -->
+      <div style="margin: 44px auto 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 14px;">
+        <sc-for list="{{ journey }}" as="j" hint-placeholder-count="3">
+          <div style="flex: 1 1 200px; min-width: 180px; max-width: 280px; background: var(--surface,#0F1E38); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 14px; padding: 18px 20px; position: relative;">
+            <div style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: 13px; color: var(--accent,#22D3EE); letter-spacing: 1px;">{{ j.stage }}</div>
+            <div style="font-weight: 700; font-size: 15px; margin-top: 8px;">{{ j.role }}</div>
+            <div style="font-size: 12.5px; color: var(--dim,#8CA3C7); margin-top: 4px;">{{ j.year }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- Timeline -->
+      <div style="position: relative; margin: 52px auto 0; max-width: 860px; padding-left: 8px;">
+        <div style="position: absolute; left: 15px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg,#22D3EE,#3B82F6,transparent);"></div>
+        <sc-for list="{{ experience }}" as="e" hint-placeholder-count="3">
+          <div style="position: relative; padding: 0 0 34px 54px;">
+            <div style="position: absolute; left: 6px; top: 4px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface,#0F1E38); border: 3px solid #22D3EE; box-shadow: 0 0 0 5px var(--glow,rgba(34,211,238,0.12));"></div>
+            <div style="background: var(--surface,#0F1E38); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 16px; padding: 22px clamp(18px,3vw,28px); transition: transform .25s, border-color .25s;" style-hover="{{ cardHover }}">
+              <div style="display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline;">
+                <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: clamp(17px,2.2vw,21px);">{{ e.role }}</div>
+                <sc-if value="{{ e.current }}" hint-placeholder-val="{{ true }}"><span style="font-size: 11.5px; font-weight: 700; color: #04101f; background: linear-gradient(135deg,#22D3EE,#3B82F6); padding: 5px 11px; border-radius: 999px;">Present</span></sc-if>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap;">
+                <span style="font-weight: 700; color: var(--accent,#22D3EE); font-size: 15px;">{{ e.company }}</span>
+                <span style="color: var(--dim,#8CA3C7); font-size: 13px;">· {{ e.period }}</span>
+              </div>
+              <div style="font-size: 13px; color: var(--dim,#8CA3C7); margin-top: 4px;">{{ e.location }}</div>
+              <div style="font-size: 14.5px; line-height: 1.65; color: var(--dim,#8CA3C7); margin-top: 14px;">{{ e.summary }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills" style="scroll-margin-top: 80px; max-width: 1200px; margin: 0 auto; padding: clamp(64px,8vw,120px) clamp(18px,4vw,40px);">
+    <div style="text-align: center; max-width: 640px; margin: 0 auto;">
+      <div style="font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--accent,#22D3EE); text-transform: uppercase;">Technical Expertise</div>
+      <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(26px,3.4vw,40px); letter-spacing: -1px; margin: 14px 0 0;">A full-stack infrastructure skill set</h2>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 18px; margin-top: 48px;">
+      <sc-for list="{{ skillGroups }}" as="g" hint-placeholder-count="5">
+        <div style="background: var(--surface,#0F1E38); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 18px; padding: 26px; transition: transform .25s, border-color .25s; min-width: 0;" style-hover="{{ cardHover }}">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg,rgba(34,211,238,0.18),rgba(59,130,246,0.12)); display: grid; place-items: center; color: #22D3EE; flex-shrink: 0;">
+              <span dangerouslySetInnerHTML="{{ g.icon }}"></span>
+            </div>
+            <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 17px;">{{ g.title }}</div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px;">
+            <sc-for list="{{ g.items }}" as="item" hint-placeholder-count="6">
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--text,#D7E4FA); background: var(--surface2,rgba(255,255,255,0.05)); border: 1px solid var(--border,rgba(255,255,255,0.08)); padding: 6px 11px; border-radius: 8px;">{{ item }}</span>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- CERTIFICATIONS -->
+  <section id="certifications" style="scroll-margin-top: 80px; background: var(--surface2,#0B1930); border-top: 1px solid var(--border,rgba(255,255,255,0.06)); border-bottom: 1px solid var(--border,rgba(255,255,255,0.06));">
+    <div style="max-width: 1200px; margin: 0 auto; padding: clamp(64px,8vw,120px) clamp(18px,4vw,40px);">
+      <div style="text-align: center; max-width: 640px; margin: 0 auto;">
+        <div style="font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--accent,#22D3EE); text-transform: uppercase;">Certifications</div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(26px,3.4vw,40px); letter-spacing: -1px; margin: 14px 0 0;">Industry-recognized credentials</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 16px; margin-top: 48px;">
+        <sc-for list="{{ certs }}" as="c" hint-placeholder-count="8">
+          <div style="background: var(--surface,#0F1E38); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 16px; padding: 22px; position: relative; transition: transform .25s, border-color .25s; min-width: 0;" style-hover="{{ cardHover }}">
+            <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px;">
+              <div style="width: 44px; height: 44px; border-radius: 11px; background: linear-gradient(135deg,#22D3EE,#3B82F6); display: grid; place-items: center; color: #04101f; flex-shrink: 0;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+              </div>
+              <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .5px; padding: 5px 10px; border-radius: 999px; text-transform: uppercase; color: {{ c.statusColor }}; background: {{ c.statusBg }};">{{ c.status }}</span>
+            </div>
+            <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 16px; margin-top: 16px; line-height: 1.3;">{{ c.name }}</div>
+            <div style="font-size: 13px; color: var(--dim,#8CA3C7); margin-top: 6px;">{{ c.issuer }}</div>
+            <sc-if value="{{ c.credId }}" hint-placeholder-val="X"><div style="font-size: 11.5px; font-family: 'Sora',sans-serif; color: var(--accent,#22D3EE); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border,rgba(255,255,255,0.08)); letter-spacing: .3px;">ID · {{ c.credId }}</div></sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects" style="scroll-margin-top: 80px; max-width: 1200px; margin: 0 auto; padding: clamp(64px,8vw,120px) clamp(18px,4vw,40px);">
+    <div style="text-align: center; max-width: 680px; margin: 0 auto;">
+      <div style="font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--accent,#22D3EE); text-transform: uppercase;">IT Infrastructure &amp; Projects</div>
+      <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(26px,3.4vw,40px); letter-spacing: -1px; margin: 14px 0 0;">Core infrastructure domains I deliver</h2>
+      <p style="font-size: 15px; color: var(--dim,#8CA3C7); margin: 14px 0 0; line-height: 1.6;">Hands-on areas of responsibility across my career — presented as professional expertise areas.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit,minmax(270px,1fr)); gap: 18px; margin-top: 48px;">
+      <sc-for list="{{ projects }}" as="p" hint-placeholder-count="8">
+        <div style="position: relative; background: var(--surface,#0F1E38); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 18px; padding: 26px; overflow: hidden; transition: transform .25s, border-color .25s; min-width: 0;" style-hover="{{ cardHover }}">
+          <div style="position: absolute; right: -6px; top: -14px; font-family: 'Sora',sans-serif; font-weight: 800; font-size: 72px; color: var(--border,rgba(255,255,255,0.05)); line-height: 1;">{{ p.num }}</div>
+          <div style="position: relative;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg,rgba(34,211,238,0.18),rgba(59,130,246,0.12)); display: grid; place-items: center; color: #22D3EE;">
+              <span dangerouslySetInnerHTML="{{ p.icon }}"></span>
+            </div>
+            <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 17px; margin-top: 16px; line-height: 1.25;">{{ p.title }}</div>
+            <div style="font-size: 13.5px; color: var(--dim,#8CA3C7); line-height: 1.6; margin-top: 8px;">{{ p.desc }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <!-- EDUCATION -->
+  <section id="education" style="scroll-margin-top: 80px; background: var(--surface2,#0B1930); border-top: 1px solid var(--border,rgba(255,255,255,0.06)); border-bottom: 1px solid var(--border,rgba(255,255,255,0.06));">
+    <div style="max-width: 1000px; margin: 0 auto; padding: clamp(64px,8vw,120px) clamp(18px,4vw,40px);">
+      <div style="text-align: center;">
+        <div style="font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--accent,#22D3EE); text-transform: uppercase;">Education</div>
+        <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(26px,3.4vw,40px); letter-spacing: -1px; margin: 14px 0 0;">Academic foundation</h2>
+      </div>
+      <div style="display: grid; gap: 14px; margin-top: 44px;">
+        <sc-for list="{{ education }}" as="ed" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 20px; background: var(--surface,#0F1E38); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 16px; padding: 22px clamp(18px,3vw,28px); flex-wrap: wrap; transition: border-color .25s;" style-hover="{{ cardHover }}">
+            <div style="width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg,rgba(34,211,238,0.18),rgba(59,130,246,0.12)); display: grid; place-items: center; color: #22D3EE; flex-shrink: 0;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+            </div>
+            <div style="flex: 1; min-width: 180px;">
+              <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 17px;">{{ ed.degree }}</div>
+              <div style="font-size: 13.5px; color: var(--dim,#8CA3C7); margin-top: 4px;">{{ ed.school }}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-family: 'Sora',sans-serif; font-weight: 700; color: var(--accent,#22D3EE); font-size: 15px;">{{ ed.year }}</div>
+              <div style="font-size: 12.5px; color: var(--dim,#8CA3C7); margin-top: 3px;">{{ ed.result }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" style="scroll-margin-top: 80px; max-width: 1200px; margin: 0 auto; padding: clamp(64px,8vw,120px) clamp(18px,4vw,40px);">
+    <div style="position: relative; border-radius: 28px; overflow: hidden; border: 1px solid var(--border,rgba(255,255,255,0.1)); background: linear-gradient(135deg, var(--surface,#0F1E38), var(--surface2,#0B1930));">
+      <div style="position: absolute; inset: 0; background: radial-gradient(700px 400px at 90% 0%, rgba(34,211,238,0.14), transparent 60%); pointer-events: none;"></div>
+      <div style="position: relative; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: clamp(32px,5vw,56px); padding: clamp(32px,5vw,56px);">
+        <div style="min-width: 0;">
+          <div style="font-size: 13px; font-weight: 700; letter-spacing: 2px; color: var(--accent,#22D3EE); text-transform: uppercase;">Get in touch</div>
+          <h2 style="font-family: 'Sora',sans-serif; font-weight: 800; font-size: clamp(24px,3.2vw,36px); letter-spacing: -1px; margin: 14px 0 0; line-height: 1.12;">Let's Connect and Build Reliable IT Infrastructure Together.</h2>
+          <p style="font-size: 15px; line-height: 1.7; color: var(--dim,#8CA3C7); margin: 16px 0 0;">Open to senior system administration, IT infrastructure, and network specialist opportunities. Reach out and let's talk.</p>
+          <div style="display: grid; gap: 12px; margin-top: 28px;">
+            <sc-for list="{{ contacts }}" as="ct" hint-placeholder-count="4">
+              <a href="{{ ct.href }}" style="display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 13px; background: var(--surface2,rgba(255,255,255,0.04)); border: 1px solid var(--border,rgba(255,255,255,0.08)); transition: border-color .2s, transform .2s;" style-hover="{{ cardHover }}">
+                <span style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg,rgba(34,211,238,0.18),rgba(59,130,246,0.12)); display: grid; place-items: center; color: #22D3EE; flex-shrink: 0;"><span dangerouslySetInnerHTML="{{ ct.icon }}"></span></span>
+                <span style="min-width: 0;">
+                  <span style="display: block; font-size: 11.5px; color: var(--dim,#8CA3C7); font-weight: 600;">{{ ct.label }}</span>
+                  <span style="display: block; font-size: 14.5px; font-weight: 700; color: var(--text,#EAF2FF); margin-top: 2px; word-break: break-word;">{{ ct.value }}</span>
+                </span>
+              </a>
+            </sc-for>
+          </div>
+        </div>
+        <div style="min-width: 0;">
+          <sc-if value="{{ sent }}" hint-placeholder-val="">
+            <div style="height: 100%; min-height: 320px; display: grid; place-items: center; text-align: center; background: var(--surface2,rgba(255,255,255,0.04)); border: 1px solid var(--border,rgba(255,255,255,0.08)); border-radius: 18px; padding: 32px;">
+              <div>
+                <div style="width: 60px; height: 60px; margin: 0 auto; border-radius: 50%; background: linear-gradient(135deg,#22D3EE,#3B82F6); display: grid; place-items: center; color: #04101f;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 20px; margin-top: 18px;">Message sent</div>
+                <div style="font-size: 14px; color: var(--dim,#8CA3C7); margin-top: 8px;">Thanks for reaching out — I'll get back to you shortly.</div>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+            <form onSubmit="{{ submit }}" style="display: grid; gap: 14px;">
+              <div style="display: grid; gap: 14px; grid-template-columns: 1fr 1fr;">
+                <input required placeholder="Your name" style="{{ inputStyle }}">
+                <input required type="email" placeholder="Email address" style="{{ inputStyle }}">
+              </div>
+              <input placeholder="Subject" style="{{ inputStyle }}">
+              <textarea required rows="5" placeholder="How can I help?" style="{{ inputStyle }}"></textarea>
+              <button type="submit" style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 15px; color: #04101f; background: linear-gradient(135deg,#22D3EE,#3B82F6); border: none; padding: 15px; border-radius: 12px; cursor: pointer; box-shadow: 0 10px 28px rgba(34,211,238,0.3); transition: transform .2s;" style-hover="{{ liftHover }}">Send Message</button>
+            </form>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer style="border-top: 1px solid var(--border,rgba(255,255,255,0.08)); background: var(--surface2,#0B1930);">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 36px clamp(18px,4vw,40px); display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg,#22D3EE,#3B82F6); display: grid; place-items: center; color: #04101f; font-family: 'Sora',sans-serif; font-weight: 800; font-size: 15px;">MH</span>
+        <div>
+          <div style="font-family: 'Sora',sans-serif; font-weight: 700; font-size: 14px;">Md. Mehedee Hassan</div>
+          <div style="font-size: 12px; color: var(--dim,#8CA3C7);">Senior System Administrator · Dhaka, Bangladesh</div>
+        </div>
+      </div>
+      <div style="font-size: 12.5px; color: var(--dim,#8CA3C7);">© {{ year }} Md. Mehedee Hassan. All rights reserved.</div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900}}">
+class Component extends DCLogic {
+  state = { theme: 'dark', sent: false };
+
+  componentDidMount() {
+    this.applyTheme();
+    this.initThree();
+    this._scrollY = 0;
+    this._onScroll = () => {
+      this._scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      const r = this.root && this.root.getBoundingClientRect();
+      if (r && this.progress) {
+        const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - window.innerHeight)));
+        this.progress.style.transform = `scaleX(${p})`;
+      }
+    };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onScroll();
+    requestAnimationFrame(() => setTimeout(() => this.initReveal(), 60));
+  }
+
+  initReveal() {
+    const root = this.root;
+    if (!root || !('IntersectionObserver' in window)) return;
+    const set = new Set();
+    root.querySelectorAll('section h2').forEach(h => {
+      if (h.previousElementSibling) set.add(h.previousElementSibling);
+      set.add(h);
+      let n = h.nextElementSibling;
+      while (n && n.tagName === 'P') { set.add(n); n = n.nextElementSibling; }
+    });
+    const cards = [...root.querySelectorAll('section *')].filter(el => (el.getAttribute('style') || '').includes('var(--surface,'));
+    cards.forEach(el => { if (![...set].some(s => s.contains(el)) && !cards.some(c => c !== el && c.contains(el))) set.add(el); });
+    root.querySelectorAll('#experience [style*="padding: 0px 0px 34px 54px"], #experience [style*="padding: 0 0 34px 54px"]').forEach(el => {
+      [...set].forEach(s => { if (el.contains(s)) set.delete(s); });
+      set.add(el);
+    });
+    const els = [...set];
+    els.forEach(el => {
+      const sibs = el.parentElement ? [...el.parentElement.children].filter(c => set.has(c)) : [el];
+      const i = Math.min(sibs.indexOf(el), 6);
+      const prev = el.style.transition;
+      el.style.opacity = '0';
+      el.style.translate = '0 36px';
+      el.style.transition = (prev ? prev + ', ' : '') + `opacity .8s cubic-bezier(.2,.7,.2,1) ${i * 90}ms, translate .8s cubic-bezier(.2,.7,.2,1) ${i * 90}ms`;
+    });
+    this._io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.style.opacity = '1';
+          en.target.style.translate = '0 0';
+          this._io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(el => this._io.observe(el));
+  }
+  componentDidUpdate() { this.applyTheme(); }
+  componentWillUnmount() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (this._ro) this._ro.disconnect();
+    if (this._onMove) window.removeEventListener('pointermove', this._onMove);
+    if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
+    if (this._io) this._io.disconnect();
+    if (this._three) this._three.renderer.dispose();
+  }
+
+  applyTheme() {
+    const el = this.root;
+    if (!el) return;
+    const LIGHT = {
+      '--bg': '#F3F7FF', '--surface': '#FFFFFF', '--surface2': '#EBF2FF',
+      '--text': '#0A1527', '--dim': '#51688E', '--border': 'rgba(10,21,39,0.10)',
+      '--accent': '#0E8CAE', '--accent2': '#2563EB', '--glow': 'rgba(37,99,235,0.10)',
+      '--nav': 'rgba(255,255,255,0.82)'
+    };
+    if (this.state.theme === 'light') {
+      for (const k in LIGHT) el.style.setProperty(k, LIGHT[k]);
+    } else {
+      for (const k in LIGHT) el.style.removeProperty(k);
+    }
+  }
+
+  async initThree() {
+    const canvas = this.canvas;
+    if (!canvas) return;
+    let THREE;
+    try {
+      THREE = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+    } catch (err) { return; }
+    if (!this.canvas) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+    camera.position.z = 62;
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this._three = { renderer };
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const N = 90, R = 44;
+    const pts = [], pos = [];
+    for (let i = 0; i < N; i++) {
+      const v = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+      v.normalize().multiplyScalar(R * Math.cbrt(Math.random()));
+      pts.push(v); pos.push(v.x, v.y, v.z);
+    }
+    const pg = new THREE.BufferGeometry();
+    pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    group.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x5EE4F7, size: 1.3, transparent: true, opacity: 0.9, depthWrite: false })));
+
+    const lp = [];
+    for (let i = 0; i < N; i++)
+      for (let j = i + 1; j < N; j++)
+        if (pts[i].distanceTo(pts[j]) < 17) lp.push(pts[i].x, pts[i].y, pts[i].z, pts[j].x, pts[j].y, pts[j].z);
+    const lg = new THREE.BufferGeometry();
+    lg.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3));
+    group.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0x38BDF8, transparent: true, opacity: 0.2 })));
+
+    const resize = () => {
+      const r = canvas.getBoundingClientRect();
+      if (!r.width) return;
+      renderer.setSize(r.width, r.height, false);
+      camera.aspect = r.width / r.height;
+      camera.updateProjectionMatrix();
+    };
+    resize();
+    this._ro = new ResizeObserver(resize);
+    this._ro.observe(canvas);
+
+    let mx = 0, my = 0;
+    this._onMove = e => { mx = e.clientX / window.innerWidth - 0.5; my = e.clientY / window.innerHeight - 0.5; };
+    window.addEventListener('pointermove', this._onMove);
+
+    const animate = () => {
+      const sy = this._scrollY || 0;
+      group.rotation.y += 0.0014;
+      group.rotation.x += 0.0006;
+      group.position.y = sy * 0.035;
+      camera.position.z = 62 + sy * 0.03;
+      camera.position.x += (mx * 20 - camera.position.x) * 0.04;
+      camera.position.y += (-my * 20 - camera.position.y) * 0.04;
+      camera.lookAt(0, 0, 0);
+      renderer.render(scene, camera);
+      this._raf = requestAnimationFrame(animate);
+    };
+    animate();
+  }
+
+  renderVals() {
+    const ico = {
+      server: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>',
+      network: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M12 8v4M12 12H5v4M12 12h7v4"/></svg>',
+      cloud: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.5 9 4.5 4.5 0 0 0 6 18h11.5z"/></svg>',
+      shield: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
+      ops: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>',
+      directory: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg>',
+      router: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="20" height="7" rx="2"/><path d="M6 17.5h.01M10 17.5h4M12 7v4M8.5 9a5 5 0 0 1 7 0"/></svg>',
+      mail: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>',
+      lock: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+      backup: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9 9 0 0 0-6.4 2.6L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>',
+      wifi: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>',
+      desk: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+      phone: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8 9.6a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z"/></svg>',
+      pin: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+      link: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>'
+    };
+    for (const k in ico) ico[k] = { __html: ico[k] };
+
+    const inputStyle = {
+      width: '100%', background: 'var(--surface2,rgba(255,255,255,0.04))',
+      border: '1px solid var(--border,rgba(255,255,255,0.12))', borderRadius: '11px',
+      padding: '13px 15px', color: 'var(--text,#EAF2FF)', fontSize: '14.5px',
+      fontFamily: "'Manrope',sans-serif", outline: 'none', resize: 'vertical'
+    };
+
+    return {
+      setRoot: el => { this.root = el; if (el) this.applyTheme(); },
+      canvasRef: el => { this.canvas = el; },
+      progressRef: el => { this.progress = el; },
+      toggleTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+      themeIcon: this.state.theme === 'dark' ? '\u2600\ufe0f' : '\ud83c\udf11',
+      cvHref: 'uploads/Resume%20of%20Md.Mehedee%20Hassan%20.pdf',
+      year: new Date().getFullYear(),
+      sent: this.state.sent,
+      notSent: !this.state.sent,
+      submit: e => { e.preventDefault(); this.setState({ sent: true }); },
+      inputStyle,
+      navHover: { color: 'var(--text,#EAF2FF)' },
+      liftHover: { transform: 'translateY(-2px)' },
+      outlineHover: { borderColor: 'var(--accent,#22D3EE)', color: 'var(--accent,#5EE4F7)' },
+      cardHover: { transform: 'translateY(-4px)', borderColor: 'rgba(34,211,238,0.4)' },
+
+      navLinks: [
+        { label: 'About', href: '#about' },
+        { label: 'Experience', href: '#experience' },
+        { label: 'Skills', href: '#skills' },
+        { label: 'Certifications', href: '#certifications' },
+        { label: 'Projects', href: '#projects' },
+        { label: 'Contact', href: '#contact' }
+      ],
+
+      heroStats: [
+        { value: '8+', label: 'Years experience' },
+        { value: '99.5%+', label: 'Server uptime' },
+        { value: '7+', label: 'Certifications' }
+      ],
+
+      aboutCards: [
+        { icon: ico.server, title: 'Server Administration', desc: 'Windows Server 2012–2019 & Linux — AD, DC, file, FTP, DB.' },
+        { icon: ico.network, title: 'Network Engineering', desc: 'Cisco & MikroTik routing, switching, VLAN, VPN, firewalls.' },
+        { icon: ico.cloud, title: 'Cloud & Virtualization', desc: 'Azure administration, VMware & Hyper-V virtual machines.' },
+        { icon: ico.shield, title: 'Security & Monitoring', desc: 'Fortinet firewall, access control, Nagios & CCTV monitoring.' }
+      ],
+
+      journey: [
+        { stage: '2018', role: 'System Administrator, IT', year: 'Creative IT Institute' },
+        { stage: '2025', role: 'Sr. System Administrator, IT', year: 'Creative IT Institute' },
+        { stage: 'NOW', role: 'IT Support & Network Specialist', year: 'Apex DMIT Ltd' }
+      ],
+
+      experience: [
+        { role: 'IT Support & Network Specialist', company: 'Apex DMIT Ltd', period: 'Jun 2026 – Present', location: 'Catharsis Tower, House #133, Rd 12, Dhaka 1213', current: true, summary: 'Supporting and securing enterprise network and IT infrastructure — device configuration, firewall management, monitoring, and end-to-end IT support.' },
+        { role: 'Sr. System Administrator, IT', company: 'Creative IT Institute', period: 'Jan 2025 – May 2026', location: 'Momtaz Plaza, Road #04, Dhanmondi, Dhaka-1205', current: false, summary: 'Led server, network and security operations — PDC, AD, DB, FS, IPTSP, FTP & ERP servers at 99.5%+ uptime, Microsoft 365 / Exchange administration, and internal IT documentation.' },
+        { role: 'System Administrator, IT', company: 'Creative IT Institute', period: 'Jan 2018 – Dec 2024', location: 'Momtaz Plaza, Road #04, Dhanmondi, Dhaka-1205', current: false, summary: 'Installed and configured routers, switches, servers and firewalls; ran daily multi-server backups, CCTV monitoring, IT asset management and ServiceDesk operations.' }
+      ],
+
+      skillGroups: [
+        { icon: ico.server, title: 'System Administration', items: ['Windows Server 2012/2016/2019', 'Active Directory', 'Domain Controller', 'File Server', 'Linux Server', 'FTP Server', 'Backup & Recovery'] },
+        { icon: ico.network, title: 'Networking', items: ['Cisco Networking', 'MikroTik RouterOS', 'Routing & Switching', 'VLAN, DHCP, DNS', 'VPN & Firewall', 'Wireless Networking', 'Bandwidth Management', 'WAN & LAN'] },
+        { icon: ico.cloud, title: 'Cloud & Virtualization', items: ['Microsoft Azure', 'Azure Administration', 'Virtual Machines', 'VMware', 'Hyper-V'] },
+        { icon: ico.shield, title: 'Security & Monitoring', items: ['Fortinet Firewall', 'Network Security', 'CCTV & Surveillance', 'Nagios Monitoring', 'Access Control'] },
+        { icon: ico.ops, title: 'IT Operations', items: ['Microsoft 365', 'Exchange & Outlook', 'ERP & CRM Support', 'ServiceDesk Management', 'IT Asset Management', 'Technical Documentation'] }
+      ],
+
+      certs: [
+        { name: 'Azure Administrator Associate (AZ-104)', issuer: 'Microsoft Certified', credId: 'D9B383E0172D10A9', status: 'Verified', statusColor: '#04101f', statusBg: 'linear-gradient(135deg,#22D3EE,#3B82F6)' },
+        { name: 'MikroTik Certified Network Associate', issuer: 'SIA MikroTik · MTCNA', credId: '20237NA9632', status: 'Verified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'MikroTik Certified Routing Engineer', issuer: 'SIA MikroTik · MTCRE', credId: '2607RE0543', status: 'Verified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'Cisco Certified Network Associate', issuer: 'CCNA · Linux Pathshala', credId: '', status: 'Certified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'CompTIA A+', issuer: 'Creative IT Institute', credId: '', status: 'Certified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'MCSA', issuer: 'Creative IT Institute', credId: '', status: 'Certified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'IT Support Level 3', issuer: 'Competency Standard for IT Support', credId: '', status: 'Certified', statusColor: '#5EE4F7', statusBg: 'rgba(34,211,238,0.12)' },
+        { name: 'RHCSA', issuer: 'Red Hat · Linux Pathshala', credId: '', status: 'In Progress', statusColor: '#FBBF24', statusBg: 'rgba(251,191,36,0.14)' }
+      ],
+
+      projects: [
+        { num: '01', icon: ico.network, title: 'Enterprise Network Infrastructure', desc: 'Design and management of WAN/LAN, VLAN segmentation, and bandwidth control across enterprise sites.' },
+        { num: '02', icon: ico.directory, title: 'Windows Server & Active Directory', desc: 'Deployment and administration of domain controllers, AD, file and FTP servers.' },
+        { num: '03', icon: ico.router, title: 'MikroTik Routing & Management', desc: 'RouterOS configuration, PPPoE, queues, routing and network optimization.' },
+        { num: '04', icon: ico.mail, title: 'Microsoft 365 & Email Administration', desc: 'Exchange, Office 365 and Outlook configuration, troubleshooting and mail security.' },
+        { num: '05', icon: ico.lock, title: 'Network Security & Firewall', desc: 'Fortinet firewall policies, access control, VPN and perimeter security hardening.' },
+        { num: '06', icon: ico.backup, title: 'Backup & Disaster Recovery', desc: 'Automated daily backups across servers, routers and switches with restore testing.' },
+        { num: '07', icon: ico.wifi, title: 'Wi-Fi & Wireless Management', desc: 'Wireless AP design, WLAN analysis, troubleshooting and Wi-Fi zone configuration.' },
+        { num: '08', icon: ico.desk, title: 'IT ServiceDesk & Asset Management', desc: 'ServiceDesk operations, IT asset tracking, inventory and technical documentation.' }
+      ],
+
+      education: [
+        { degree: 'BSc in Computer Science & Engineering', school: 'Bangladesh University', year: '2021', result: 'CGPA 3.46 / 4' },
+        { degree: 'Diploma in Computer Technology', school: 'Thakurgaon Polytechnic Institute', year: '2017', result: 'CGPA 3.16 / 4' },
+        { degree: 'SSC — Science', school: 'Baura Public High School', year: '2013', result: 'GPA 4.81 / 5' }
+      ],
+
+      contacts: [
+        { icon: ico.mail, label: 'Email', value: 'mehedeecse@gmail.com', href: 'mailto:mehedeecse@gmail.com' },
+        { icon: ico.phone, label: 'Phone', value: '+88 01780912554', href: 'tel:+8801780912554' },
+        { icon: ico.pin, label: 'Location', value: 'Dhanmondi, Dhaka-1205, Bangladesh', href: '#contact' },
+        { icon: ico.link, label: 'LinkedIn', value: 'linkedin.com/in/mehedee-hassan', href: '#' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
